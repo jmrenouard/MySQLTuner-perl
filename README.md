@@ -185,10 +185,10 @@ MySQLTuner needs you
 Contributions welcome !
 --
 
-* How to contribute using Pull Request ?
-[Pull request creation](https://opensource.com/article/19/7/create-pull-request-github)
+How to contribute using Pull Request ? Follow this guide : [Pull request creation](https://opensource.com/article/19/7/create-pull-request-github)
 
-* Simple steps to create a pull request:
+Simple steps to create a pull request:
+-- 
 
 - Fork this Github project
 - Clone it to your local system
