@@ -3,3 +3,9 @@ build/mysqltuner.spec
 build/build.log
 build/cve*
 build/vulnerabilities*
+*.bak
+Vagrant/Vagrantfile
+Vagrant/data
+Vagrant/.vagrant
+contents
+contents/*
