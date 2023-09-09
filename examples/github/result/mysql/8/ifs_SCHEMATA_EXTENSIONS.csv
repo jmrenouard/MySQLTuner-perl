@@ -1,1 +1,7 @@
-"def","mysql","""def","information_schema","""def","performance_schema","""def","sys","""def","data","""def","employees",""
+"CATALOG_NAME","SCHEMA_NAME","OPTIONS"
+"def","mysql",""
+"def","information_schema",""
+"def","performance_schema",""
+"def","sys",""
+"def","data",""
+"def","employees",""

@@ -1,1 +1,3 @@
-"104","root","localhost:57084","NULL","Query","0","executing","select * from information_schema.PROCESSLIST""5","event_scheduler","localhost","NULL","Daemon","73","Waiting on empty queue","NULL"
+"ID","USER","HOST","DB","COMMAND","TIME","STATE","INFO"
+"108","root","localhost:53304","NULL","Query","0","executing","select * from information_schema.PROCESSLIST"
+"5","event_scheduler","localhost","NULL","Daemon","63","Waiting on empty queue","NULL"
