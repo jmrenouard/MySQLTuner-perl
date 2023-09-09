@@ -1,1 +1,2 @@
+"CONSTRAINT_CATALOG","CONSTRAINT_SCHEMA","TABLE_NAME","CONSTRAINT_NAME","CHECK_CLAUSE"
 "def","mysql","global_priv","Priv","json_valid(`Priv`)"
