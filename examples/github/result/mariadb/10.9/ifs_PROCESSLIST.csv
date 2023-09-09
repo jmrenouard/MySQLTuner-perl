@@ -1,1 +1,2 @@
-"71","root","localhost:45428","NULL","Query","0","Filling schema table","select * from information_schema.PROCESSLIST","0.247","0","0","0.000","89032","89032","0","396","select * from information_schema.PROCESSLIST","1785"
+"ID","USER","HOST","DB","COMMAND","TIME","STATE","INFO","TIME_MS","STAGE","MAX_STAGE","PROGRESS","MEMORY_USED","MAX_MEMORY_USED","EXAMINED_ROWS","QUERY_ID","INFO_BINARY","TID"
+"73","root","localhost:43504","NULL","Query","0","Filling schema table","select * from information_schema.PROCESSLIST","0.221","0","0","0.000","146104","146104","0","404","select * from information_schema.PROCESSLIST","1849"
