@@ -1,1 +1,7 @@
-"def","information_schema","utf8","utf8_general_ci","NULL""def","data","latin1","latin1_swedish_ci","NULL""def","employees","latin1","latin1_swedish_ci","NULL""def","mysql","latin1","latin1_swedish_ci","NULL""def","performance_schema","utf8","utf8_general_ci","NULL""def","sys","utf8","utf8_general_ci","NULL"
+"CATALOG_NAME","SCHEMA_NAME","DEFAULT_CHARACTER_SET_NAME","DEFAULT_COLLATION_NAME","SQL_PATH"
+"def","information_schema","utf8","utf8_general_ci","NULL"
+"def","data","latin1","latin1_swedish_ci","NULL"
+"def","employees","latin1","latin1_swedish_ci","NULL"
+"def","mysql","latin1","latin1_swedish_ci","NULL"
+"def","performance_schema","utf8","utf8_general_ci","NULL"
+"def","sys","utf8","utf8_general_ci","NULL"

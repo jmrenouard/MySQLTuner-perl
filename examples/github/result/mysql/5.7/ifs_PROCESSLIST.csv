@@ -1,1 +1,2 @@
-"64","root","localhost:34438","NULL","Query","0","executing","select * from information_schema.PROCESSLIST"
+"ID","USER","HOST","DB","COMMAND","TIME","STATE","INFO"
+"68","root","localhost:37438","NULL","Query","0","executing","select * from information_schema.PROCESSLIST"
