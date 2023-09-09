@@ -1,1 +1,7 @@
-"def","employees","dept_emp_ibfk_1","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","dept_emp","employees""def","employees","dept_emp_ibfk_2","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","dept_emp","departments""def","employees","dept_manager_ibfk_1","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","dept_manager","employees""def","employees","dept_manager_ibfk_2","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","dept_manager","departments""def","employees","salaries_ibfk_1","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","salaries","employees""def","employees","titles_ibfk_1","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","titles","employees"
+"CONSTRAINT_CATALOG","CONSTRAINT_SCHEMA","CONSTRAINT_NAME","UNIQUE_CONSTRAINT_CATALOG","UNIQUE_CONSTRAINT_SCHEMA","UNIQUE_CONSTRAINT_NAME","MATCH_OPTION","UPDATE_RULE","DELETE_RULE","TABLE_NAME","REFERENCED_TABLE_NAME"
+"def","employees","dept_emp_ibfk_1","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","dept_emp","employees"
+"def","employees","dept_emp_ibfk_2","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","dept_emp","departments"
+"def","employees","dept_manager_ibfk_1","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","dept_manager","employees"
+"def","employees","dept_manager_ibfk_2","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","dept_manager","departments"
+"def","employees","salaries_ibfk_1","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","salaries","employees"
+"def","employees","titles_ibfk_1","def","employees","PRIMARY","NONE","RESTRICT","CASCADE","titles","employees"
