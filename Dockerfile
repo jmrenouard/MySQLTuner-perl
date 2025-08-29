@@ -1,6 +1,13 @@
 FROM ubuntu:latest
 
-LABEL maintainer="jmrenouard@gmail.com"
+LABEL maintainer="Jean-Marie Renouard <jmrenouard@gmail.com>" \
+      org.opencontainers.image.title="MySQLTuner" \
+      org.opencontainers.image.description="MySQLTuner is a script written in Perl that allows you to review a MySQL installation quickly and make adjustments to increase performance and stability." \
+      org.opencontainers.image.version="2.6.1" \
+      org.opencontainers.image.authors="Jean-Marie Renouard" \
+      org.opencontainers.image.url="https://github.com/major/MySQLTuner-perl" \
+      org.opencontainers.image.source="https://github.com/major/MySQLTuner-perl" \
+      org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 ENV DEBIAN_FRONTEND=noninteractive
 
