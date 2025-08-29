@@ -1487,8 +1487,8 @@ sub get_all_vars {
     $result{'Replication'}{'Status'} = \%myrepl;
 
     my @mysqlslaves;
-    if ( mysql_version_eq(8) or mysql_version_ge( 10, 5 ) ) {
-        @mysqlslaves = select_array "SHOW SLAVE STATUS\\G";
+    if ( $myvar{'version_comment'} !~ /MariaDB/i and mysql_version_ge( 8, 0, 22 ) ) {
+        @mysqlslaves = select_array("SHOW REPLICAS\\G");
     }
     else {
         @mysqlslaves = select_array("SHOW SLAVE HOSTS\\G");
