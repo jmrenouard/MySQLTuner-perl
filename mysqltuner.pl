@@ -276,7 +276,7 @@ our %CLI_METADATA = (
     },
     'dumpdir' => {
         type        => '=s',
-        default     => '0',
+        default     => undef,
         desc        => 'Path to a directory where to dump information files',
         placeholder => '<path>',
         cat         => 'PERFORMANCE'
@@ -9201,7 +9201,7 @@ ENDSQL
             }
         }
     }
-    if ( $opt{dumpdir} ne '' ) {
+    if ( $opt{dumpdir} ) {
         $mermaid_er .= "```\n\n";
         $schema_doc .= $mermaid_er;
         my $doc_file = "$opt{dumpdir}/schema_documentation.md";
@@ -9565,7 +9565,7 @@ sub which {
 }
 
 sub dump_csv_files {
-    return if ( $opt{dumpdir} eq '' );
+    $opt{dumpdir} || return;
 
     subheaderprint "Dumping CSV files";
 
