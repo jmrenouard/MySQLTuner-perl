@@ -2167,6 +2167,34 @@ sub select_table_columns_db {
     );
 }
 
+sub get_password_column_name {
+    my @mysql_user_columns = select_table_columns_db( 'mysql', 'user' );
+    my $pass_column        = '';
+    my $auth_column        = '';
+
+    if ( grep { /^authentication_string$/msx } @mysql_user_columns ) {
+        $auth_column = 'authentication_string';
+    }
+
+    # Case-insensitive match for Password/password
+    my @pass_matches = grep { lc($_) eq 'password' } @mysql_user_columns;
+    if (@pass_matches) {
+        $pass_column = $pass_matches[0];
+    }
+
+    if ( $auth_column && $pass_column ) {
+        return "IF(plugin='mysql_native_password', $auth_column, $pass_column)";
+    }
+    elsif ($auth_column) {
+        return $auth_column;
+    }
+    elsif ($pass_column) {
+        return $pass_column;
+    }
+
+    return '';
+}
+
 sub get_tuning_info {
     my @infoconn = select_array "\\s";
     my ( $tkey, $tval );
@@ -2211,6 +2239,56 @@ sub arr2hash {
     }
 }
 
+sub check_privileges {
+    debugprint "Checking database privileges...";
+    my @grants     = select_array("SHOW GRANTS FOR CURRENT_USER()");
+    my $all_grants = join( " ", @grants );
+
+    # If the user has ALL PRIVILEGES or SUPER, we assume they have enough
+    if ( $all_grants =~ /ALL PRIVILEGES/i || $all_grants =~ /SUPER/i ) {
+        debugprint "Current user has high-level privileges (ALL or SUPER).";
+        return;
+    }
+
+    my @required_privs =
+      ( 'SELECT', 'PROCESS', 'EXECUTE', 'SHOW DATABASES', 'SHOW VIEW' );
+
+    # Version-specific privileges
+    if ( mysql_version_ge( 8, 0 ) && $myvar{'version'} !~ /mariadb/i ) {
+        push( @required_privs, 'REPLICATION SLAVE', 'REPLICATION CLIENT' );
+    }
+    elsif ( $myvar{'version'} =~ /mariadb/i && mysql_version_ge( 10, 5 ) ) {
+        push( @required_privs,
+            'BINLOG MONITOR',
+            'REPLICATION MASTER ADMIN',
+            'SLAVE MONITOR' );
+
+# MariaDB 11+ might use REPLICA MONITOR instead of SLAVE MONITOR, but SLAVE MONITOR is usually still there as an alias
+    }
+    else {
+        push( @required_privs, 'REPLICATION CLIENT' );
+    }
+
+    my @missing_privs = ();
+    foreach my $priv (@required_privs) {
+
+        # Use word boundaries and case-insensitive matching
+        if ( $all_grants !~ /\b$priv\b/i ) {
+            push( @missing_privs, $priv );
+        }
+    }
+
+    if (@missing_privs) {
+        badprint "Current user is missing the following privileges: "
+          . join( ", ", @missing_privs );
+        badprint "Some checks may be skipped or provide incomplete results.";
+        infoprint "Refer to README.md for the minimum required privileges.";
+    }
+    else {
+        debugprint "Current user has all required privileges.";
+    }
+}
+
 sub get_all_vars {
 
     # We need to initiate at least one query so that our data is useable
@@ -2228,6 +2306,9 @@ sub get_all_vars {
     push( @mysqlvarlist, select_array("SHOW GLOBAL VARIABLES") );
     arr2hash( \%myvar, \@mysqlvarlist );
     $result{'Variables'} = \%myvar;
+
+    # Check privileges after we have version and variable information
+    check_privileges();
 
     my @mysqlstatlist = select_array("SHOW STATUS");
     push( @mysqlstatlist, select_array("SHOW GLOBAL STATUS") );
@@ -3306,36 +3387,11 @@ sub security_recommendations {
 
     infoprint "$myvar{'version_comment'} - $myvar{'version'}";
 
-    my $PASS_COLUMN_NAME = 'password';
+    my $PASS_COLUMN_NAME = get_password_column_name();
 
-    # New table schema available since mysql-5.7 and mariadb-10.2
-    # But need to be checked
-    if (
-        ( $myvar{'version'} =~ /5\.7/ )
-        or (
-            ( $myvar{'version'} =~ /10\.[2-5]\..*/ )
-            and (  ( $myvar{'version'} =~ /MariaDB/i )
-                or ( $myvar{'version_comment'} =~ /MariaDB/i ) )
-        )
-      )
-    {
-        my $result_pass = execute_system_command(
-"$mysqlcmd $mysqllogin -Bse \"SELECT 1 FROM information_schema.columns WHERE TABLE_SCHEMA = 'mysql' AND TABLE_NAME = 'user' AND COLUMN_NAME = 'password'\" 2>>$devnull"
-        );
-        my $result_auth = execute_system_command(
-"$mysqlcmd $mysqllogin -Bse \"SELECT 1 FROM information_schema.columns WHERE TABLE_SCHEMA = 'mysql' AND TABLE_NAME = 'user' AND COLUMN_NAME = 'authentication_string'\" 2>>$devnull"
-        );
-        if ( $result_pass && $result_auth ) {
-            $PASS_COLUMN_NAME =
-"IF(plugin='mysql_native_password', authentication_string, password)";
-        }
-        elsif ($result_auth) {
-            $PASS_COLUMN_NAME = 'authentication_string';
-        }
-        elsif ( !$result_pass ) {
-            infoprint "Skipped due to none of known auth columns exists";
-            return;
-        }
+    if ( $PASS_COLUMN_NAME eq '' ) {
+        infoprint "Skipped due to none of known auth columns exists";
+        return;
     }
     debugprint "Password column = $PASS_COLUMN_NAME";
 
@@ -9566,7 +9622,7 @@ sub which {
 }
 
 sub dump_csv_files {
-    return if ( $opt{dumpdir} eq '' );
+    return if ( ( $opt{dumpdir} // '0' ) eq '0' or $opt{dumpdir} eq '' );
 
     subheaderprint "Dumping CSV files";
 

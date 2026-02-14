@@ -13,6 +13,7 @@ This file records anomalies discovered during laboratory testing (Perl warnings,
 - [ ] **Performance Schema Disabled**: `✘ Performance_schema should be activated.` reported during audit.
   - Found in: `examples/20260127_004622_mariadb114/Standard/execution.log`
   - Impact: Reduced diagnostic depth for performance metrics.
+  - Reproduce: `tests/repro_pfs_disabled.t`
   - **How to fix**:
     - **MySQL/MariaDB**: Add `performance_schema=ON` under `[mysqld]` in your `my.cnf` or `server.cnf` and restart the service.
     - **Cloud/Managed**: Enable via your cloud provider console (e.g., AWS Parameter Group, GCP Flags).
@@ -43,9 +44,10 @@ Pre-existing anomalies found in examples/ directory:
 
 ### Environment/Lab Issues
 
-- [ ] **SQL Execution Failure (return code 256)**: Persistent across MySQL 8.x, 9.6 and Percona 8.0.
+- [x] **SQL Execution Failure (return code 256)**: Persistent across MySQL 8.x, 9.6 and Percona 8.0.
   - Found in: `examples/20260202_230352_mysql84/Standard/execution.log`, `examples/20260202_230050_mysql96/Standard/execution.log`.
-  - Notes: Likely related to Performance Schema visibility or specific system table access in laboratory containers.
+  - Fix: Issue #22 (Robust password column detection).
+  - Reproduce: `tests/repro_issue_22.t`.
 
 ## [2026-02-02 Audit] System Call & Core Perl Optimization
 

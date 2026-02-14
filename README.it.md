@@ -56,7 +56,7 @@ I risultati dei test sono disponibili qui solo per LTS:
 * Cluster Percona XtraDB (supporto completo)
 * Replica MySQL (supporto parziale, nessun ambiente di test)
 
-Grazie a [endoflife.date](endoflife.date)
+Grazie a [endoflife.date](https://endoflife.date/)
 
 * Fare riferimento a [Versioni supportate di MariaDB](https://github.com/jmrenouard/MySQLTuner-perl/blob/master/mariadb_support.md).
 * Fare riferimento a [Versioni supportate di MySQL](https://github.com/jmrenouard/MySQLTuner-perl/blob/master/mysql_support.md).
@@ -93,8 +93,32 @@ Cose non mantenute da MySQL o MariaDB
 ***REQUISITI MINIMI***
 
 * Perl 5.6 o successivo (con pacchetto [perl-doc](https://metacpan.org/release/DAPM/perl-5.14.4/view/pod/perldoc.pod))
-* Sistema operativo basato su Unix/Linux (testato su Linux, varianti BSD e varianti Solaris)
-* Accesso in lettura illimitato al server MySQL
+* Sistema operativo basato su Unix/Linux (testé su Linux, varianti BSD e varianti Solaris)
+* Accesso in lettura illimitato al server MySQL (vedi Privilegi di seguito)
+
+***PRIVILEGI***
+--
+
+Per eseguire MySQLTuner con tutte le funzionalità, sono richiesti i seguenti privilegi:
+
+**MySQL 8.0+**:
+
+```sql
+GRANT SELECT, PROCESS, SHOW DATABASES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, SHOW VIEW ON *.* TO 'mysqltuner'@'localhost';
+```
+
+**MariaDB 10.5+**:
+
+```sql
+GRANT SELECT, PROCESS, SHOW DATABASES, EXECUTE, BINLOG MONITOR, SHOW VIEW, REPLICATION MASTER ADMIN, SLAVE MONITOR ON *.* TO 'mysqltuner'@'localhost';
+```
+
+**Versioni legacy**:
+
+```sql
+GRANT SELECT, PROCESS, EXECUTE, REPLICATION CLIENT, SHOW DATABASES, SHOW VIEW ON *.* TO 'mysqltuner'@'localhost';
+```
+
 Accesso root al sistema operativo consigliato per MySQL < 5.1
 
 ***AVVERTIMENTO***
@@ -498,15 +522,6 @@ $mysql_config_editor print
 user = someusername
 password = *****
 host = localhost
-```
-
-**Domanda: quali sono i privilegi minimi necessari per un utente specifico di mysqltuner nel database?**
-
-```bash
- mysql>GRANT SELECT, PROCESS,EXECUTE, REPLICATION CLIENT,
- SHOW DATABASES,SHOW VIEW
- ON *.*
- TO 'mysqltuner'@'localhost' identified by pwd1234;
 ```
 
 **Domanda: non funziona sul mio sistema operativo! Che succede?!**
