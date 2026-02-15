@@ -2546,7 +2546,7 @@ sub log_file_recommendations {
     }
 
     # Try to find logs from docker/podman if file doesn't exist locally
-    elsif (!-f "$myvar{'log_error'}"
+    elsif ( !-f "$myvar{'log_error'}"
         && $myvar{'log_error'} !~ /^(docker|podman|kubectl|systemd):/
         && !is_docker() )
     {
@@ -3158,18 +3158,22 @@ sub get_system_info {
       ? 'Windows'
       : ( $prefix eq '' ? $sysname : execute_system_command('uname -o') );
     infoprint "Operating System Type : "
-      . ( $is_win
+      . (
+        $is_win
         ? 'Windows'
-        : ( $prefix eq '' ? $sysname : execute_system_command('uname -o') ) );
+        : ( $prefix eq '' ? $sysname : execute_system_command('uname -o') )
+      );
 
     $result{'OS'}{'Kernel'} =
       $is_win
       ? execute_system_command('ver')
       : ( $prefix eq '' ? $release : execute_system_command('uname -r') );
     infoprint "Kernel Release        : "
-      . ( $is_win
+      . (
+        $is_win
         ? execute_system_command('ver')
-        : ( $prefix eq '' ? $release : execute_system_command('uname -r') ) );
+        : ( $prefix eq '' ? $release : execute_system_command('uname -r') )
+      );
 
     $result{'OS'}{'Hostname'} =
       ( !$is_win && $prefix eq '' ) ? $nodename : Sys::Hostname::hostname();
@@ -3192,9 +3196,11 @@ sub get_system_info {
         infocmd_tab "ifconfig| grep -A1 mtu";
     }
     infoprint "Internal IP           : "
-      . ( ( !$is_win && $prefix eq '' )
+      . (
+        ( !$is_win && $prefix eq '' )
         ? execute_system_command('hostname -I')
-        : infocmd_one "hostname -I" );
+        : infocmd_one "hostname -I"
+      );
     if ( which( "ip", $ENV{'PATH'} ) ) {
         $result{'Network'}{'Internal Ip'} =
           execute_system_command('ip addr | grep -A1 mtu');
@@ -7269,7 +7275,7 @@ sub mariadb_xtradb {
     infoprint "XtraDB is enabled.";
     infoprint "Note that MariaDB 10.2 makes use of InnoDB, not XtraDB."
 
-      # Not implemented
+    # Not implemented
 }
 
 # Recommendations for RocksDB
@@ -8585,7 +8591,7 @@ sub mysql_innodb {
         infoprint
 "innodb_buffer_pool_chunk_size is set to 'autosize' (0) in MariaDB >= 10.8. Skipping chunk size checks.";
     }
-    elsif (!defined( $myvar{'innodb_buffer_pool_chunk_size'} )
+    elsif ( !defined( $myvar{'innodb_buffer_pool_chunk_size'} )
         || $myvar{'innodb_buffer_pool_chunk_size'} == 0
         || !defined( $myvar{'innodb_buffer_pool_size'} )
         || $myvar{'innodb_buffer_pool_size'} == 0
@@ -9657,7 +9663,8 @@ sub dump_result {
         }
 
         my $json = JSON->new->allow_nonref;
-        print $json->utf8(1)->pretty( ( $opt{'prettyjson'} ? 1 : 0 ) )
+        print $json->utf8(1)
+          ->pretty( ( $opt{'prettyjson'} ? 1 : 0 ) )
           ->encode( \%result );
 
         if ( $opt{'outputfile'} ne 0 ) {
@@ -9665,7 +9672,8 @@ sub dump_result {
             open my $fh, q(>), $opt{'outputfile'}
               or die
 "Unable to open $opt{'outputfile'} in write mode. please check permissions for this file or directory";
-            print $fh $json->utf8(1)->pretty( ( $opt{'prettyjson'} ? 1 : 0 ) )
+            print $fh $json->utf8(1)
+              ->pretty( ( $opt{'prettyjson'} ? 1 : 0 ) )
               ->encode( \%result );
             close $fh;
         }
