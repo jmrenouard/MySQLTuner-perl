@@ -1,7 +1,7 @@
 ---
-trigger: explicit_call
+trigger: /doc-sync
 description: Synchronize .agent/README.md with current Rules, Skills, and Workflows
-category: tool
+category: Documentation
 ---
 
 # Documentation Synchronization Workflow
@@ -17,7 +17,7 @@ python3 build/doc_sync.py
     - [ ] **READMEs**: Verify `README.md` and translations are up-to-date with new features.
     - [ ] **Usage**: Ensure `mysqltuner.pl --help` output matches `CLI_METADATA` in script.
     - [ ] **ROADMAP.md**: Move completed items from Phase 2/3 to COMPLETED.
-    - [ ] **POTENTIAL_ISSUES**: Audit and resolve found anomalies.
+    - [ ] **POTENTIAL_ISSUES**: Audit found anomalies and update it if needed.
     - [ ] **Script Comments**: Verify internal documentation matches logic changes.
 
 2. **Version Consistency Audit**:
