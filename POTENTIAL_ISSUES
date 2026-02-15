@@ -83,3 +83,14 @@ The following external commands are currently used via `execute_system_command` 
   - **Replacement**: Native Perl parsing of `/proc/cpuinfo`.
 - [x] **Command**: `sysctl -n vm.swappiness` (line 3052)
   - **Replacement**: Native Perl parsing of `/proc/sys/vm/swappiness`.
+
+## [2026-02-14 Audit] Release v2.8.38
+
+### Environment/Lab Issues
+
+- [ ] **SQL Execution Failure (return code 256)**: Persistent across MySQL 8.x and 9.x in laboratory reports.
+  - Found in: `examples/20260214_224108_mysql96/`, `examples/20260214_224539_mysql84/`.
+  - Symptom: `✘ FAIL Execute SQL / return code: 256`.
+  - Investigation: Containers startup as expected but some SQL queries (potentially PFS related) fail on newer versions.
+- [ ] **Container Startup Failure**: `mysql96` failed to start during `make test-all`.
+  - Found in: `examples/20260214_234142_mysql96/`.

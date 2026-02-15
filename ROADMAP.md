@@ -28,18 +28,22 @@ To ensure consistency and high-density development, the following roles are defi
 * [x] **Structured Error Log Ingestion**: Supported `performance_schema.error_log` for diagnostic ingestion (MySQL 8.0+).
 * [x] **Refined Reporting**: Improved data richness in the "Modeling Analysis" tab.
 
-### Phase 2: Advanced Diagnostics [IN PROGRESS]
+### Phase 2: Advanced Diagnostics (v2.8.34 - v2.8.38) [COMPLETED]
 
-* **Plugin & Hook Stability**: Formalize the custom hook mechanism (verified for MySQL and SSL) to enable scalable third-party integrations.
-* **Compliance Awareness Framework**: Specialized audit profiles (`--audit-pci`, `--audit-hipaa`, `--audit-gdpr`) to verify regulatory configuration requirements.
-* **Index Audit 2.0**: Integrate `performance_schema` to detect redundant and unused indexes.
-* **Transactional Contention Analysis**: Detect patterns leading to deadlocks and high lock wait times.
-* **Buffer Pool Advisory**: More granular analysis of InnoDB Buffer Pool usage and resizing recommendations.
-* **Kernel & Architecture Health**: Implement `io_uring` support detection and kernel setting verification.
+| Item | Status |
+| :--- | :--- |
+| **System Call Optimization** | [x] Replaced `awk`, `grep`, `hostname`, `uname`, `sysctl` with native Perl. |
+| **Native /proc Parsing** | [x] Implemented native parsing for `cpuinfo`, `meminfo`, `swappiness`. |
+| **Index Audit 2.0** | [x] Integrated `performance_schema` for redundant/unused index detection. |
+| **Observability Log Ingestion** | [x] Support for `syslog`, `journald`, and `performance_schema.error_log`. |
+| **Transactional Contention** | [x] Detect isolation levels and long-running transactions. |
+| **Buffer Pool Advisory** | [ ] More granular analysis of InnoDB Buffer Pool usage. |
 
-### Phase 3: Automation & Ecosystem
+### Phase 3: Automation & Ecosystem [IN PROGRESS]
 
 * **Infrastructure-Aware Tuning**: Detect storage types (NVMe/SSD) and hardware architectures (ARM64/Graviton).
+* **MySQL 9.x Full Compatibility**: Support for removed variables and `mysql_native_password` elimination.
+* **Authentication Plugin Auditing**: Detect insecure plugins (SHA-1 based `mysql_native_password`) and recommend migration paths (`caching_sha2_password`, `ed25519`).
 * **Sysbench Metrics Integration**: Automated baseline capture and performance comparison within the report.
 * **Multi-Cloud Autodiscovery**: Automated detection of RDS, GCP, and Azure specific performance flags and optimizations.
 * **Query Anti-Pattern Detection**: Use `performance_schema` to identify non-SARGable queries and `SELECT *` abuse.
