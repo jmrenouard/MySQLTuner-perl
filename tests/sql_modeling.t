@@ -249,4 +249,57 @@ subtest 'Data Type Optimization Checks' => sub {
     ok(has_output(qr/INFO: There are 25 columns with NULL enabled/), 'Excessive nullable columns detected');
 };
 
+subtest 'Surrogate Key Checks - EXTRA column auto_increment (Issue #1007)' => sub {
+    $main::myvar{'version'} = '8.0.36';
+    %mock_queries = (
+        'having sum\(if\(c.column_key in \(\'PRI\', \'UNI\'\), 1, 0\)\) = 0' => [],
+        'COLUMN_KEY = \'PRI\'' => [
+            # Realistic MySQL 8.x information_schema.columns data:
+            # 1. Recommended surrogate key with auto_increment in EXTRA:
+            "test_db\ttbl_valid\tid\tbigint\tbigint unsigned\tauto_increment",
+            # 2. Surrogate key missing auto_increment:
+            "test_db\ttbl_no_autoinc\tid\tbigint\tbigint unsigned\t",
+            # 3. Surrogate key missing unsigned:
+            "test_db\ttbl_no_unsigned\tid\tbigint\tbigint\tauto_increment",
+            # 4. Legacy 5-field mock with auto_increment in column_type:
+            "test_db\ttbl_legacy\tid\tbigint\tbigint(20) unsigned auto_increment",
+        ],
+        'ENGINE <> \'InnoDB\'' => [],
+        'CHARacter_set_name  LIKE \'utf8%\'' => [],
+        'data_type=\'FULLTEXT\'' => [],
+        'SELECT TABLE_SCHEMA, TABLE_NAME, \(DATA_LENGTH \+ INDEX_LENGTH\).*1024\*1024\*1024' => [],
+        'statistics s WHERE s.TABLE_SCHEMA = t.TABLE_SCHEMA.*INDEX_NAME != \'PRIMARY\'' => [],
+    );
+    @main::generalrec = ();
+    %main::result = ();
+    @mock_output = ();
+    $main::opt{'structstat'} = 1;
+    $main::opt{'nocolor'} = 1;
+
+    {
+        no warnings 'redefine';
+        local *main::mysql_naming_conventions = sub { };
+        local *main::mysql_foreign_key_checks = sub { };
+        local *main::mysql_80_modeling_checks = sub { };
+        local *main::mysql_datatype_optimization = sub { };
+        local *main::mysql_schema_sanitization = sub { };
+        main::mysql_table_structures();
+    }
+
+    # Valid surrogate key with EXTRA = auto_increment must NOT be flagged as bad
+    ok(!has_output(qr/BAD: Table test_db.tbl_valid: Primary key 'id' is not a recommended surrogate key/), 'Valid BIGINT UNSIGNED AUTO_INCREMENT via EXTRA is not flagged');
+
+    # Missing auto_increment must be flagged
+    ok(has_output(qr/BAD: Table test_db.tbl_no_autoinc: Primary key 'id' is not a recommended surrogate key/), 'Missing auto_increment is correctly flagged');
+
+    # Missing unsigned must be flagged
+    ok(has_output(qr/BAD: Table test_db.tbl_no_unsigned: Primary key 'id' is not a recommended surrogate key/), 'Missing unsigned is correctly flagged');
+
+    # Legacy 5-column mock must not be flagged
+    ok(!has_output(qr/BAD: Table test_db.tbl_legacy: Primary key 'id' is not a recommended surrogate key/), 'Legacy 5-column mock with auto_increment in columntype is not flagged');
+
+    # Exactly 2 tables flagged (tbl_no_autoinc and tbl_no_unsigned)
+    is(scalar(grep { $_ eq "Use BIGINT UNSIGNED AUTO_INCREMENT for Primary Keys in 2 table(s)" } @main::generalrec), 1, 'Surrogate key recommendation count is 2');
+};
+
 done_testing();

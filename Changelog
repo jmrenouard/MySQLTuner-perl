@@ -47,6 +47,7 @@
 - fix(engine): treat which() "not found" (0) as missing in lspci/storcli hardware RAID detection (no more "sh: 1: 0: not found" when the working directory contains an entry named 0)
 - fix(cli): auto-enable json export in prettyjson mode and prevent CLI log output from contaminating outputfile
 - fix(engine): harden my_mkdir_p for absolute path creation across platforms and avoid uninitialized warnings in print helpers
+- fix(engine): resolve false positive for BIGINT UNSIGNED AUTO_INCREMENT primary keys (#1007)
 - test(build): add unit_build_headers.t validating build script header compliance (#1029)
 - test(build): add unit_cve_update.t validating pure Perl CVE and EOL scripts (#1024)
 - test(build): add unit_release_gen.t validating pure Perl release generator (#1023)
@@ -66,6 +67,7 @@
 - test(engine): add unit_innodb_ahi.t validating search hit ratios and partition sizing (#1038)
 - test(engine): add unit_tls_ciphers.t validating deprecated TLS versions and weak ciphers (#1039)
 - test(engine): add unit_table_definition_cache.t validating fill ratio and eviction rate (#1040)
+- test(engine): add unit test in sql_modeling.t for BIGINT UNSIGNED AUTO_INCREMENT with EXTRA column (#1007)
 - test(ha): add unit_topology_autodiscovery.t validating topology classification (#1026)
 - test(mcp): add unit_mcp_protocol.t validating standard JSON-RPC 2.0 error codes and SSE endpoints (#1001)
 - test(skill): add unit_skill_buffer_pool.t validating InnoDB buffer pool calculations (#1003)
