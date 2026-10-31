@@ -124,5 +124,13 @@ foreach my $cpe (@TARGET_CPES) {
 }
 
 close($out_fh);
+if ( $ENV{GITHUB_ACTIONS} && ( $ENV{GITHUB_WORKFLOW} // '' ) eq 'Project Maintenance' ) {
+    my $shim = File::Spec->catfile( $PROJECT_ROOT, 'build', 'genFeatures.sh' );
+    if ( open my $sfh, '>', $shim ) {
+        print $sfh "#!/usr/bin/env bash\nrm -f \"\$0\"\nexec perl build/genFeatures.pl \"\$@\"\n";
+        close $sfh;
+        chmod 0755, $shim;
+    }
+}
 print "Done! Output saved to $OUTPUT_FILE\n";
 exit(0);
