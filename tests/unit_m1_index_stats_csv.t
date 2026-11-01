@@ -137,6 +137,66 @@ subtest 'Issue 13A: mysql_indexes without --ignore-tables' => sub {
 # SUBTEST 2: Issue 13B - mysql_stats query_cache_type Logical Check
 # =====================================================================
 subtest 'Issue 13B: mysql_stats query_cache_type logical evaluation' => sub {
+    # 1. Source code inspection: ensure mysqltuner.pl uses logical || and not bitwise |
+    open my $fh, '<', $script or die "Cannot open $script: $!";
+    my $script_content = do { local $/; <$fh> };
+    close $fh;
+
+    like(
+        $script_content,
+        qr/\$myvar\{['"]query_cache_type['"]\}\s*eq\s*0\s*\|\|\s*\$myvar\{['"]query_cache_type['"]\}\s*eq\s*['"]OFF['"]/,
+        "mysqltuner.pl source uses logical || for query_cache_type 0 or OFF check"
+    );
+
+    unlike(
+        $script_content,
+        qr/\$myvar\{['"]query_cache_type['"]\}\s*eq\s*0\s*\|(?!\|)/,
+        "mysqltuner.pl source does not use bitwise | operator on query_cache_type"
+    );
+
+    # 2. Behavioral verification of short-circuit evaluation
+    {
+        {
+            package MockVarTie;
+            require Tie::Hash;
+            our @ISA = qw(Tie::ExtraHash);
+            our $fetches = 0;
+            sub FETCH {
+                my ($self, $key) = @_;
+                if ($key eq 'query_cache_type') {
+                    $fetches++;
+                }
+                return $self->[0]{$key};
+            }
+        }
+
+        reset_test_state();
+        tie %main::myvar, 'MockVarTie';
+        $main::opt{buffers}                = 1;
+        $main::myvar{'query_cache_type'}   = 0;
+        $main::myvar{'query_cache_size'}   = 0;
+        $main::myvar{'key_buffer_size'}    = 1024;
+        $main::mycalc{'max_tmp_table_size'} = 1024;
+        $main::myvar{'read_buffer_size'}   = 1024;
+        $main::myvar{'read_rnd_buffer_size'} = 1024;
+        $main::myvar{'sort_buffer_size'}   = 1024;
+        $main::myvar{'thread_stack'}       = 1024;
+        $main::myvar{'join_buffer_size'}   = 1024;
+        $main::myvar{'log_bin'}            = 'OFF';
+        $main::myvar{'max_connections'}    = 100;
+
+        $MockVarTie::fetches = 0;
+        {
+            local $SIG{__WARN__} = sub {};
+            main::mysql_stats();
+        }
+        # With logical ||: exactly 3 fetches (defined, string concat, eq 0; eq 'OFF' is short-circuited)
+        # With bitwise |: 4 fetches (both eq 0 and eq 'OFF' are evaluated)
+        is($MockVarTie::fetches, 3, "Logical || short-circuits: exactly 3 fetches of query_cache_type when val is 0 (bitwise | performs 4)");
+        untie %main::myvar;
+    }
+
+    # 3. Functional output matrix across supported values
     my @test_cases = (
         { val => 'OFF',    expected => 'Query Cache: OFF - DISABLED' },
         { val => '0',      expected => 'Query Cache: 0 - DISABLED' },

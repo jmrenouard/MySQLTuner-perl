@@ -8940,8 +8940,8 @@ sub mysql_stats {
             infoprint " +-- Query Cache: "
               . $myvar{'query_cache_type'} . " - "
               . (
-                $myvar{'query_cache_type'} eq 0 |
-                  $myvar{'query_cache_type'} eq 'OFF' ? "DISABLED"
+                $myvar{'query_cache_type'} eq 0
+                  || $myvar{'query_cache_type'} eq 'OFF' ? "DISABLED"
                 : (
                     $myvar{'query_cache_type'} eq 1 ? "ALL REQUESTS"
                     : "ON DEMAND"
