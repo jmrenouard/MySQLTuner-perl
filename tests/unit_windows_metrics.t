@@ -190,7 +190,7 @@ subtest 'os_setup Windows Memory Detection and Fallback' => sub {
         };
         main::os_setup();
         is($main::result{'OS'}{'Physical Memory'}{'bytes'}, "17179869184", 'Physical memory captured via PowerShell CIM');
-        is($main::result{'OS'}{'Swap Memory'}{'bytes'}, "8388608", 'Swap memory captured via PowerShell CIM');
+        is($main::result{'OS'}{'Swap Memory'}{'bytes'}, "8589934592", 'Swap memory captured via PowerShell CIM (converted to bytes)');
         is($main::result{'OS'}{'OS Type'}, 'windows', 'OS Type set to windows');
     }
 
@@ -219,7 +219,7 @@ subtest 'os_setup Windows Memory Detection and Fallback' => sub {
         };
         main::os_setup();
         is($main::result{'OS'}{'Physical Memory'}{'bytes'}, "8589934592", 'Physical memory captured via WMIC fallback');
-        is($main::result{'OS'}{'Swap Memory'}{'bytes'}, "4194304", 'Swap memory captured via WMIC fallback');
+        is($main::result{'OS'}{'Swap Memory'}{'bytes'}, "4294967296", 'Swap memory captured via WMIC fallback (converted to bytes)');
     }
 
     # Case 3C: Both fail triggers memerror
