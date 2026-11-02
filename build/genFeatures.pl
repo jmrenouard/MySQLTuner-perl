@@ -25,18 +25,38 @@ GetOptions(
 ) or die "Error in command line arguments\n";
 
 open my $in_fh, '<', $MYSQLTUNER_PL or die "Cannot open $MYSQLTUNER_PL: $!\n";
+my $content = do { local $/; <$in_fh> };
+close $in_fh;
 
+my %seen;
 my @subs;
-my $filter_regex = qr/^(?:get_|close_|check_|memerror|cpu_cores|compare_tuner_version|grep_file_contents|update_tuner_version|mysql_version_|calculations|merge_hash|os_setup|pretty_uptime|update_tuner_version|human_size|string2file|file2|arr2|dump|which|percentage|trim|is_|hr_|info|print|select|wrap|remove_)/;
 
-while ( my $line = <$in_fh> ) {
-    if ( $line =~ /^sub\s+([a-zA-Z0-9_]+)/ ) {
+# 1. Extract runnable report subroutines directly from @REPORT_SECTIONS
+if ( $content =~ /my\s+\@REPORT_SECTIONS\s*=\s*\((.*?)\);/s ) {
+    my $block = $1;
+    while ( $block =~ /\\&([a-zA-Z0-9_]+)/g ) {
         my $sub_name = $1;
-        next if $sub_name =~ $filter_regex;
-        push @subs, $sub_name;
+        next if $sub_name =~ /^_/;
+        push @subs, $sub_name unless $seen{$sub_name}++;
     }
 }
-close $in_fh;
+
+# 2. Extract registered audit subroutines
+while ( $content =~ /^sub\s+(audit_[a-zA-Z0-9_]+)\s*\{/mg ) {
+    my $sub_name = $1;
+    next if $sub_name =~ /^_/;
+    push @subs, $sub_name unless $seen{$sub_name}++;
+}
+
+# 3. Defensive fallback if @REPORT_SECTIONS was not found
+if ( !@subs ) {
+    my $filter_regex = qr/^(?:_|get_|close_|check_|memerror|cpu_cores|compare_tuner_version|grep_file_contents|update_tuner_version|mysql_version_|calculations|merge_hash|os_setup|pretty_uptime|human_size|string2file|file2|arr2|dump|which|percentage|trim|is_|hr_|info|print|select|wrap|remove_|my_|show_|execute_|sub|bad|good|cmd|debug|header|pretty|red|green|format|parse|clear|log|logical|report|save|stop|compute|display|extract|find)/;
+    while ( $content =~ /^sub\s+([a-zA-Z0-9_]+)\s*\{/mg ) {
+        my $sub_name = $1;
+        next if $sub_name =~ $filter_regex;
+        push @subs, $sub_name unless $seen{$sub_name}++;
+    }
+}
 
 my @sorted_subs = sort @subs;
 

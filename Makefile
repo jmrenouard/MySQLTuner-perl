@@ -112,7 +112,7 @@ release:
 	@OLD_VERSION=$$(cat CURRENT_VERSION.txt | tr -d '\n'); \
 	echo "Bumping version from $$OLD_VERSION to $(VERSION)..."; \
 	echo "$(VERSION)" > CURRENT_VERSION.txt; \
-	sed -i "s/$$OLD_VERSION/$(VERSION)/g" mysqltuner.pl README.md POTENTIAL_ISSUES.md MEMORY_DB.md Changelog; \
+	sed -i "s/$$OLD_VERSION/$(VERSION)/g" mysqltuner.pl README.md README.*.md POTENTIAL_ISSUES.md MEMORY_DB.md SECURITY.md Changelog; \
 	pod2markdown mysqltuner.pl > USAGE.md; \
 	perl build/release_gen.pl; \
 	echo "Version bumped to $(VERSION). USAGE.md and release notes generated."
@@ -145,8 +145,8 @@ increment_major_version:
 	@echo "Incrementing major version from $(VERSION) to $(UPDATE_MAJOR_VERSION)"
 	sed -i "s/$(VERSION)/$(UPDATE_MAJOR_VERSION)/" mysqltuner.pl *.md .github/workflows/*.yml
 	git add ./*.md ./mysqltuner.pl
-	git commit -m "Generate $(UPDATE_SUB_VERSION) major version at $(shell date --iso=seconds)"
-	git tag -a v$(UPDATE_MINOR_VERSION) -m "Generate $(UPDATE_MAJOR_VERSION) major version at $(shell date --iso=seconds)"
+	git commit -m "Generate $(UPDATE_MAJOR_VERSION) major version at $(shell date --iso=seconds)"
+	git tag -a v$(UPDATE_MAJOR_VERSION) -m "Generate $(UPDATE_MAJOR_VERSION) major version at $(shell date --iso=seconds)"
 	git push --tags
 
 docker_build:

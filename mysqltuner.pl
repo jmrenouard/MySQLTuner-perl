@@ -18296,6 +18296,18 @@ TCP/IP port number to connect to (default: 3306).
 
 Path to local UNIX domain socket for database communication.
 
+=item B<--pipe>
+
+Connect to a local Windows database using named pipes.
+
+=item B<--pipe_name> I<name>
+
+Use a different pipe name for a local Windows named pipe connection.
+
+=item B<--protocol> I<tcp>
+
+Force TCP connection protocol instead of UNIX domain socket.
+
 =item B<--user> I<username>
 
 Database username for authentication.
@@ -18304,9 +18316,13 @@ Database username for authentication.
 
 Database password for authentication.
 
-=item B<--ask-pass>
+=item B<--userenv> I<envvar>
 
-Prompt interactively for database password on the terminal.
+Environment variable name containing the database username.
+
+=item B<--passenv> I<envvar>
+
+Environment variable name containing the database password.
 
 =item B<--defaults-file> I<path>
 
@@ -18328,23 +18344,23 @@ Path to custom C<mysql> client binary.
 
 Path to custom C<mysqladmin> binary.
 
-=item B<--tli>
-
-Use Transport Layer Interface abstraction.
-
 =item B<--ssl-ca> I<path>
 
 Path to SSL Certificate Authority (CA) certificate.
-
-=item B<--caching-sha2-password>
-
-Force caching_sha2_password authentication plugin mode.
 
 =back
 
 =head2 Target Environment and Cloud Discovery Options
 
 =over 4
+
+=item B<--cloud>
+
+Enable cloud mode for remote or managed cloud database instances.
+
+=item B<--azure>
+
+Enable Azure Database for MySQL specific optimizations and metrics.
 
 =item B<--container> I<container_name_or_id>
 
@@ -18358,45 +18374,13 @@ Execute diagnostics over SSH remote transport.
 
 SSH login username.
 
-=item B<--ssh-key> I<path>
+=item B<--ssh-password> I<password>
 
-Path to SSH private key file.
+SSH password for remote cloud host authentication.
 
-=item B<--ssh-port> I<port>
+=item B<--ssh-identity-file> I<path>
 
-SSH daemon port (default: 22).
-
-=item B<--aws-profile> I<profile>
-
-AWS CLI profile for Amazon RDS / Aurora cluster discovery.
-
-=item B<--aws-region> I<region>
-
-AWS Region for RDS / Aurora discovery.
-
-=item B<--aws-cluster-identifier> I<id>
-
-Amazon RDS / Aurora cluster identifier.
-
-=item B<--aws-instance-identifier> I<id>
-
-Amazon RDS instance identifier.
-
-=item B<--gcp-project> I<project_id>
-
-Google Cloud project ID for Cloud SQL instances.
-
-=item B<--gcp-instance> I<instance_id>
-
-Google Cloud SQL instance identifier.
-
-=item B<--azure-resource-group> I<group>
-
-Azure resource group for Azure Database for MySQL.
-
-=item B<--azure-server-name> I<name>
-
-Azure MySQL flexible/single server name.
+Path to SSH private key identity file for remote host authentication.
 
 =back
 
@@ -18439,6 +18423,26 @@ Path to custom dictionary file for password audits.
 =item B<--checkversion>
 
 Check for upstream MySQLTuner version updates.
+
+=item B<--updateversion>
+
+Update MySQLTuner in-place if a newer version is available.
+
+=item B<--sysbench-file> I<path>
+
+Path to a sysbench output file for performance metadata integration.
+
+=item B<--compare-file> I<path>
+
+Path to a previous JSON result file for trend analysis.
+
+=item B<--feature> I<feature_name>
+
+Run a specific diagnostic feature report subroutine (see FEATURES.md).
+
+=item B<--server-log> I<path>
+
+Path to explicit server error log file for log analysis.
 
 =item B<--nondedicated>
 
@@ -18494,9 +18498,9 @@ Dump diagnostic data files and Markdown schema summaries to target directory.
 
 Export individual Markdown documentation files with Mermaid ER diagrams per schema.
 
-=item B<--nocolor>
+=item B<--color>, B<--nocolor>
 
-Disable ANSI color codes in terminal output.
+Control ANSI color codes in terminal output (enabled by default on TTY).
 
 =item B<--noprettyicon>
 
@@ -18505,6 +18509,46 @@ Use plain text markers ([OK], [!!], [--]) instead of Unicode icons.
 =item B<--stage-timings>
 
 Display execution duration for each analysis stage.
+
+=item B<--experimental>
+
+Print experimental diagnostic analysis and recommendations.
+
+=item B<--dbstat>, B<--nodbstat>
+
+Print database storage, tables count, and collation breakdown.
+
+=item B<--tbstat>, B<--notbstat>
+
+Print table-level storage metrics and engine distribution.
+
+=item B<--colstat>, B<--nocolstat>
+
+Print column metadata and schema optimization findings.
+
+=item B<--idxstat>, B<--noidxstat>
+
+Print index cardinality, unused index, and duplicate index analysis.
+
+=item B<--sysstat>, B<--nosysstat>
+
+Print operating system hardware and kernel metrics.
+
+=item B<--pfstat>, B<--nopfstat>
+
+Print MySQL Performance Schema telemetry and instrumentation metrics.
+
+=item B<--plugininfo>, B<--noplugininfo>
+
+Print active and inactive MySQL/MariaDB plugin details.
+
+=item B<--myisamstat>, B<--nomyisamstat>
+
+Print detailed MyISAM key cache and storage statistics.
+
+=item B<--structstat>, B<--nostructstat>
+
+Print table structure and schema design recommendations.
 
 =back
 
@@ -18534,6 +18578,48 @@ Suppress informational messages.
 
 =back
 
+=head2 Miscellaneous Options
+
+=over 4
+
+=item B<--max-password-checks> I<number>
+
+Maximum number of passwords to test from the dictionary file (default: 100).
+
+=item B<--dump-limit> I<number>
+
+Limit number of rows exported per table in CSV dump mode (default: 50000).
+
+=item B<--compress-dump>
+
+Compress dumped CSV files using gzip compression.
+
+=item B<--ignore-tables> I<tables>
+
+Comma-separated list of tables to exclude from intensive analysis.
+
+=item B<--bannedports> I<ports>
+
+Comma-separated list of banned network ports to flag.
+
+=item B<--maxportallowed> I<number>
+
+Maximum allowable number of open ports on the host.
+
+=item B<--defaultarch> I<32|64>
+
+Assumed operating system architecture (32 or 64-bit, default: 64).
+
+=item B<--noask>
+
+Do not prompt for interactive confirmation during operations.
+
+=item B<--help>, B<-?>
+
+Display the help message and options summary.
+
+=back
+
 =head1 VERSION
 
 Version 2.9.4
@@ -18546,7 +18632,7 @@ You can inspect the embedded manual with the perldoc command:
 
 =head2 INTERNALS
 
-L<https://github.com/jmrenouard/MySQLTuner-perl/blob/master/INTERNALS.md>
+L<https://github.com/major/MySQLTuner-perl/blob/master/INTERNALS.md>
 
  Internal documentation
 
@@ -18718,15 +18804,15 @@ derZ-dev
 
 Bug reports, feature requests, and downloads at http://mysqltuner.pl/
 
-Bug tracker can be found at https://github.com/jmrenouard/MySQLTuner-perl/issues
+Bug tracker can be found at https://github.com/major/MySQLTuner-perl/issues
 
 Maintained by Jean-Marie Renouard (jmrenouard\@gmail.com) - Licensed under GPL
 
 =head1 SOURCE CODE
 
-L<https://github.com/jmrenouard/MySQLTuner-perl/>
+L<https://github.com/major/MySQLTuner-perl/>
 
- git clone https://github.com/jmrenouard/MySQLTuner-perl/.git
+ git clone https://github.com/major/MySQLTuner-perl.git
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -18735,7 +18821,7 @@ Copyright (C) 2006-2026 Major Hayden - major@mhtx.net
 
 For the latest updates, please visit http://mysqltuner.pl/
 
-Git repository available at https://github.com/jmrenouard/MySQLTuner-perl/
+Git repository available at https://github.com/major/MySQLTuner-perl/
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

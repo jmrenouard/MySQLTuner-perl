@@ -126,23 +126,40 @@ sub get_git_commits {
 sub get_cli_options {
     my ($content) = @_;
     my %opts;
-    while ( $content =~ /['"]([a-zA-Z0-9_-]+)['"]\s*=>/g ) {
-        $opts{$1} = 1;
+    if ( $content =~ /our\s+%CLI_METADATA\s*=\s*\((.*?)\n\);/s ) {
+        my $meta_block = $1;
+        while ( $meta_block =~ /^\s*['"]([a-zA-Z0-9_\-\|\!\?\:\=]+)['"]\s*=>\s*\{/mg ) {
+            my $raw = $1;
+            my ($primary) = split /\|/, $raw;
+            $primary =~ s/[!+=:].*$//;
+            $opts{$primary} = 1;
+        }
+    }
+    elsif ( $content =~ /GetOptions\s*\((.*?)\);/s ) {
+        my $getopt_block = $1;
+        while ( $getopt_block =~ /['"]([a-zA-Z0-9_\-\|\!\?\:\=]+)['"]\s*=>/g ) {
+            my $raw = $1;
+            my ($primary) = split /\|/, $raw;
+            $primary =~ s/[!+=:].*$//;
+            $opts{$primary} = 1;
+        }
     }
     return \%opts;
 }
 
 sub analyze_indicators {
     my ($content) = @_;
-    my @good = ( $content =~ /goodprint\(/g );
-    my @bad  = ( $content =~ /badprint\(/g );
-    my @info = ( $content =~ /infoprint\(/g );
+    my @good = ( $content =~ /(?<!sub\s)\bgoodprint\b/g );
+    my @bad  = ( $content =~ /(?<!sub\s)\bbadprint\b/g );
+    my @info = ( $content =~ /(?<!sub\s)\binfoprint\b/g );
+    my @rec  = ( $content =~ /(?<!sub\s)\bpush_recommendation\b/g );
 
     my %counts = (
         good  => scalar(@good),
         bad   => scalar(@bad),
         info  => scalar(@info),
-        total => scalar(@good) + scalar(@bad) + scalar(@info)
+        rec   => scalar(@rec),
+        total => scalar(@good) + scalar(@bad) + scalar(@info) + scalar(@rec)
     );
     return \%counts;
 }
@@ -150,9 +167,9 @@ sub analyze_indicators {
 sub extract_diagnostic_names {
     my ($content) = @_;
     my %diag = ( good => {}, bad => {}, info => {} );
-    while ( $content =~ /goodprint\s*\(\s*["'](.*?)["']/g ) { $diag{good}{$1} = 1; }
-    while ( $content =~ /badprint\s*\(\s*["'](.*?)["']/g )  { $diag{bad}{$1}  = 1; }
-    while ( $content =~ /infoprint\s*\(\s*["'](.*?)["']/g ) { $diag{info}{$1} = 1; }
+    while ( $content =~ /(?<!sub\s)\bgoodprint\s*\(?\s*["'](.*?)["']/g ) { $diag{good}{$1} = 1; }
+    while ( $content =~ /(?<!sub\s)\bbadprint\s*\(?\s*["'](.*?)["']/g )  { $diag{bad}{$1}  = 1; }
+    while ( $content =~ /(?<!sub\s)\binfoprint\s*\(?\s*["'](.*?)["']/g ) { $diag{info}{$1} = 1; }
     return \%diag;
 }
 
@@ -221,13 +238,13 @@ sub sort_changelog_lines {
         $start_idx = 1;
     }
 
-    my @categories = ( 'chore', 'feat', 'fix', 'test', 'ci' );
+    my @categories = ( 'chore', 'feat', 'fix', 'test', 'ci', 'docs', 'perf', 'refactor', 'style' );
     my %categorized = map { $_ => [] } @categories;
     my @others;
 
     for ( my $i = $start_idx ; $i < @lines ; $i++ ) {
         my $line = $lines[$i];
-        if ( $line =~ /^- (\w+):/ && exists $categorized{$1} ) {
+        if ( $line =~ /^- (\w+)(?:\([^)]+\))?!?:/ && exists $categorized{$1} ) {
             push @{ $categorized{$1} }, $line;
         }
         else {
@@ -338,6 +355,7 @@ sub generate_version_note {
             [ 'bad',   'Risk Detections' ],
             [ 'info',  'Information Points' ]
         );
+        push @metrics, [ 'rec', 'Recommendations' ] if exists $tech_data->{indicators}{rec};
 
         for my $m (@metrics) {
             my ( $key, $label ) = @$m;
@@ -398,12 +416,12 @@ sub generate_version_note {
             print $fh "\n";
         }
         my $has_new_diag = grep { @{ $tech_data->{new_diagnostics}{$_} } > 0 } ( 'bad', 'good', 'info' );
-        if ( !@{ $tech_data->{added_opts} } && !@{ $tech_data->{removed_opts} } && !$has_new_diag && !@$breaking_commits ) {
-            print $fh "*Internal logic hardening (no interface or diagnostic changes).*\n\n";
+        if ( !@{ $tech_data->{added_opts} } && !@{ $tech_data->{removed_opts} } && !@$breaking_commits ) {
+            print $fh "*Internal logic hardening (no interface or CLI option changes).*\n\n";
         }
     }
     elsif ( !@$breaking_commits ) {
-        print $fh "*Internal logic hardening (no interface or diagnostic changes).*\n\n";
+        print $fh "*Internal logic hardening (no interface or CLI option changes).*\n\n";
     }
 
     print $fh "## ✅ Laboratory Verification Results\n\n";
