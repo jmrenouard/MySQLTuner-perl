@@ -27,6 +27,7 @@ Link Utili
 * **Release/Tag:** [https://github.com/major/MySQLTuner-perl/tags](https://github.com/major/MySQLTuner-perl/tags)
 * **Changelog:** [https://github.com/major/MySQLTuner-perl/blob/master/Changelog](https://github.com/major/MySQLTuner-perl/blob/master/Changelog)
 * **Immagini Docker:** [https://hub.docker.com/repository/docker/jmrenouard/mysqltuner/tags](https://hub.docker.com/repository/docker/jmrenouard/mysqltuner/tags)
+* **Riferimenti Utili:** [Documentation/References](https://github.com/major/MySQLTuner-perl/blob/master/documentation/REFERENCES.md)
 * **Guida all'Integrazione Agent IA e Server MCP:** [Documentation/AI MCP Server Guide](https://github.com/major/MySQLTuner-perl/blob/master/documentation/mcp_ai_integration_guide.md) | [Guide Serveur MCP (FR)](https://github.com/major/MySQLTuner-perl/blob/master/documentation/mcp_ai_integration_guide.fr.md) | [AGENT.md](https://github.com/major/MySQLTuner-perl/blob/master/AGENT.md)
 * **Report HTML Interattivi (v2.9.0+):**
   * [Esempio di Report MariaDB 11.4](https://lightpath.fr/MySQLtuner_reports/MySQLTuner-v290_mariadb114/Schemadir/mysqltuner_report.html)
@@ -542,6 +543,12 @@ export MYSQL_PASS=secret
 perl mysqltuner.pl --userenv=MYSQL_USER --passenv=MYSQL_PASS
 ```
 
+**Utilizzo:** Utilizzare un file di configurazione personalizzato
+
+```bash
+perl mysqltuner.pl --defaults-file=/path/to/my.cnf
+```
+
 Per un elenco completo di tutte le opzioni disponibili, esegui `perl mysqltuner.pl --help` o consulta la documentazione [USAGE.md](USAGE.md).
 
 Supporto cloud
@@ -712,27 +719,33 @@ Grazie a [@rolandomysqldba](https://dba.stackexchange.com/users/877/rolandomysql
 
 Connessione e autenticazione
 
+```
  --host <hostname> Connettiti a un host remoto per eseguire i test (predefinito: localhost)
  --socket <socket> Usa un socket diverso per una connessione locale
  --port <port>     Porta da utilizzare per la connessione (predefinita: 3306)
  --user <username> Nome utente da utilizzare per l'autenticazione
  --pass <password> Password da utilizzare per l'autenticazione
  --defaults-file <path> file dei valori predefiniti per le credenziali
+```
 
 * In caso di accesso non riuscito viene mostrato l'errore reale del client (es. `Client error: ERROR 2026 ... self-signed certificate`) con un suggerimento TLS o di rete; "credenziali non valide" viene segnalato solo per errori di autenticazione (1045/1698).
 * Un errore con credenziali esplicite `--pass` o `--login-path` termina subito (codice 1) senza provare altri metodi di accesso (`debian.cnf`, file dei valori predefiniti, prompt).
 
 Poiché si sta utilizzando un host remoto, utilizzare i parametri per fornire i valori dal sistema operativo
 
+```
  --forcemem <size>  Quantità di RAM installata (in megabyte o con unità, es. 15G, 1024M)
  --forceswap <size> Quantità di memoria di swap configurata (in megabyte o con unità)
+```
 
 * Potrebbe essere necessario contattare l'amministratore di sistema remoto per chiedere quanta RAM e swap si dispone
 
 Se il database ha troppe tabelle o tabelle molto grandi, usa questo:
 
+```
  --skipsize           Non enumerare tabelle e i loro tipi/dimensioni (predefinito: on)
                       (Consigliato per server con molte tabelle)
+```
 
 **Domanda: posso installare questo progetto usando homebrew su Apple Macintosh?**
 

@@ -52,7 +52,7 @@ subtest 'Extract %CLI_METADATA from mysqltuner.pl' => sub {
     }
 
     cmp_ok( scalar keys %primary_options, '>=', 70, 'Extracted >= 70 primary options from %CLI_METADATA' );
-    is( scalar keys %primary_options, 76, 'Found exactly 76 primary options in %CLI_METADATA' );
+    is( scalar keys %primary_options, 77, 'Found exactly 77 primary options in %CLI_METADATA' );
 };
 
 my %pod_options;

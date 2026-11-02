@@ -24,6 +24,9 @@
     # AI Agent integration output (actionable JSON remediation plan)
     perl mysqltuner.pl --agent-json
 
+    # Export indicator catalog and metadata in JSON format (offline, no database connection)
+    perl mysqltuner.pl --list-indicators
+
 # IMPORTANT USAGE GUIDELINES
 
 - **Production Stability:** Run the script without modifying arguments first to review recommendations before applying changes.
@@ -236,6 +239,10 @@
 - **--schemadir** _path_
 
     Export individual Markdown documentation files with Mermaid ER diagrams per schema.
+
+- **--list-indicators**
+
+    Export all diagnostic indicators, features, and metadata in JSON format and exit without establishing a database connection.
 
 - **--color**, **--nocolor**
 

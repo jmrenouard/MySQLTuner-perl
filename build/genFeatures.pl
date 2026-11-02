@@ -11,6 +11,7 @@ use warnings;
 use Getopt::Long;
 use File::Spec;
 use Cwd qw(getcwd);
+use JSON::PP qw(decode_json);
 
 my $PROJECT_ROOT  = getcwd();
 my $MYSQLTUNER_PL = File::Spec->catfile( $PROJECT_ROOT, 'mysqltuner.pl' );
@@ -24,37 +25,59 @@ GetOptions(
     'dry-run'  => \$dry_run,
 ) or die "Error in command line arguments\n";
 
-open my $in_fh, '<', $MYSQLTUNER_PL or die "Cannot open $MYSQLTUNER_PL: $!\n";
-my $content = do { local $/; <$in_fh> };
-close $in_fh;
-
 my %seen;
 my @subs;
 
-# 1. Extract runnable report subroutines directly from @REPORT_SECTIONS
-if ( $content =~ /my\s+\@REPORT_SECTIONS\s*=\s*\((.*?)\);/s ) {
-    my $block = $1;
-    while ( $block =~ /\\&([a-zA-Z0-9_]+)/g ) {
+# 1. Primary: Extract features by consuming mysqltuner.pl --list-indicators
+my $cmd = "$^X " . File::Spec->catfile( $PROJECT_ROOT, 'mysqltuner.pl' ) . " --list-indicators 2>/dev/null";
+my $json_out = `$cmd`;
+
+if ( $json_out && $json_out =~ /^\s*\{/ ) {
+    my $data = eval { decode_json($json_out) };
+    if ( $data && ref $data eq 'HASH' && ref $data->{features} eq 'ARRAY' ) {
+        for my $f ( @{ $data->{features} } ) {
+            push @subs, $f unless $seen{$f}++;
+        }
+    }
+}
+
+# 2. Defensive fallback: Parse source file if CLI invocation is unavailable
+if ( !@subs && -e $MYSQLTUNER_PL ) {
+    open my $in_fh, '<', $MYSQLTUNER_PL or die "Cannot open $MYSQLTUNER_PL: $!\n";
+    my $content = do { local $/; <$in_fh> };
+    close $in_fh;
+
+    # Extract runnable report subroutines from @REPORT_SECTION_NAMES or @REPORT_SECTIONS
+    if ( $content =~ /(?:our|my)\s+\@REPORT_SECTION_NAMES\s*=\s*qw\((.*?)\);/s ) {
+        my $block = $1;
+        while ( $block =~ /([a-zA-Z0-9_]+)/g ) {
+            push @subs, $1 unless $seen{$1}++;
+        }
+    }
+    elsif ( $content =~ /my\s+\@REPORT_SECTIONS\s*=\s*\((.*?)\);/s ) {
+        my $block = $1;
+        while ( $block =~ /\\&([a-zA-Z0-9_]+)/g ) {
+            my $sub_name = $1;
+            next if $sub_name =~ /^_/;
+            push @subs, $sub_name unless $seen{$sub_name}++;
+        }
+    }
+
+    # Extract registered audit subroutines
+    while ( $content =~ /^sub\s+(audit_[a-zA-Z0-9_]+)\s*\{/mg ) {
         my $sub_name = $1;
         next if $sub_name =~ /^_/;
         push @subs, $sub_name unless $seen{$sub_name}++;
     }
-}
 
-# 2. Extract registered audit subroutines
-while ( $content =~ /^sub\s+(audit_[a-zA-Z0-9_]+)\s*\{/mg ) {
-    my $sub_name = $1;
-    next if $sub_name =~ /^_/;
-    push @subs, $sub_name unless $seen{$sub_name}++;
-}
-
-# 3. Defensive fallback if @REPORT_SECTIONS was not found
-if ( !@subs ) {
-    my $filter_regex = qr/^(?:_|get_|close_|check_|memerror|cpu_cores|compare_tuner_version|grep_file_contents|update_tuner_version|mysql_version_|calculations|merge_hash|os_setup|pretty_uptime|human_size|string2file|file2|arr2|dump|which|percentage|trim|is_|hr_|info|print|select|wrap|remove_|my_|show_|execute_|sub|bad|good|cmd|debug|header|pretty|red|green|format|parse|clear|log|logical|report|save|stop|compute|display|extract|find)/;
-    while ( $content =~ /^sub\s+([a-zA-Z0-9_]+)\s*\{/mg ) {
-        my $sub_name = $1;
-        next if $sub_name =~ $filter_regex;
-        push @subs, $sub_name unless $seen{$sub_name}++;
+    # Defensive fallback if sections were not found
+    if ( !@subs ) {
+        my $filter_regex = qr/^(?:_|get_|close_|check_|memerror|cpu_cores|compare_tuner_version|grep_file_contents|update_tuner_version|mysql_version_|calculations|merge_hash|os_setup|pretty_uptime|human_size|string2file|file2|arr2|dump|which|percentage|trim|is_|hr_|info|print|select|wrap|remove_|my_|show_|execute_|sub|bad|good|cmd|debug|header|pretty|red|green|format|parse|clear|log|logical|report|save|stop|compute|display|extract|find)/;
+        while ( $content =~ /^sub\s+([a-zA-Z0-9_]+)\s*\{/mg ) {
+            my $sub_name = $1;
+            next if $sub_name =~ $filter_regex;
+            push @subs, $sub_name unless $seen{$sub_name}++;
+        }
     }
 }
 

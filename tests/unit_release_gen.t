@@ -100,7 +100,7 @@ subtest 'Zero Dependency Check on Build Scripts' => sub {
         while ( my $line = <$fh> ) {
             if ( $line =~ /^\s*use\s+([A-Za-z0-9_:]+)/ ) {
                 my $mod = $1;
-                push @uses, $mod unless $mod =~ /^(?:strict|warnings|Getopt::Long|File::Spec|Cwd|POSIX|FindBin)$/;
+                push @uses, $mod unless $mod =~ /^(?:strict|warnings|Getopt::Long|File::Spec|Cwd|POSIX|FindBin|JSON::PP)$/;
             }
         }
         close $fh;

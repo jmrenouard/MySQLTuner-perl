@@ -13,6 +13,7 @@ use Getopt::Long;
 use File::Spec;
 use Cwd qw(getcwd);
 use POSIX qw(strftime);
+use JSON::PP qw(decode_json);
 
 my $PROJECT_ROOT   = getcwd();
 my $CHANGELOG_PATH = File::Spec->catfile( $PROJECT_ROOT, 'Changelog' );
@@ -190,9 +191,28 @@ sub analyze_tech_details {
 
     return undef unless $current_code;
 
-    my $current_opts       = get_cli_options($current_code);
-    my $current_indicators = analyze_indicators($current_code);
-    my $current_names      = extract_diagnostic_names($current_code);
+    my $current_opts;
+    my $current_indicators;
+    my $current_names;
+
+    # Consume mysqltuner.pl --list-indicators for the current version
+    if ( $version eq get_current_version() && !$ENV{'GEN_HISTORICAL'} && -e $MYSQLTUNER_PL ) {
+        my $cmd = "$^X \"$MYSQLTUNER_PL\" --list-indicators 2>/dev/null";
+        my $json_out = `$cmd`;
+        if ( $json_out && $json_out =~ /^\s*\{/ ) {
+            my $data = eval { decode_json($json_out) };
+            if ( $data && ref $data eq 'HASH' ) {
+                $current_opts       = $data->{cli_options};
+                $current_indicators = $data->{summary};
+                $current_names      = $data->{diagnostics};
+            }
+        }
+    }
+
+    # Fallback to source/git regex parsing if --list-indicators is absent (e.g. historical tags)
+    $current_opts       //= get_cli_options($current_code);
+    $current_indicators //= analyze_indicators($current_code);
+    $current_names      //= extract_diagnostic_names($current_code);
 
     my $prev_tag = `git describe --tags --abbrev=0 ${tag}^ 2>/dev/null`;
     $prev_tag =~ s/^\s+|\s+$//g if defined $prev_tag;

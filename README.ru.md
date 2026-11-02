@@ -27,6 +27,7 @@
 * **Релизы/Теги:** [https://github.com/major/MySQLTuner-perl/tags](https://github.com/major/MySQLTuner-perl/tags)
 * **Changelog:** [https://github.com/major/MySQLTuner-perl/blob/master/Changelog](https://github.com/major/MySQLTuner-perl/blob/master/Changelog)
 * **Docker-образы:** [https://hub.docker.com/repository/docker/jmrenouard/mysqltuner/tags](https://hub.docker.com/repository/docker/jmrenouard/mysqltuner/tags)
+* **Полезные ссылки:** [Documentation/References](https://github.com/major/MySQLTuner-perl/blob/master/documentation/REFERENCES.md)
 * **Руководство по интеграции ИИ-агентов и сервера MCP:** [Documentation/AI MCP Server Guide](https://github.com/major/MySQLTuner-perl/blob/master/documentation/mcp_ai_integration_guide.md) | [Guide Serveur MCP (FR)](https://github.com/major/MySQLTuner-perl/blob/master/documentation/mcp_ai_integration_guide.fr.md) | [AGENT.md](https://github.com/major/MySQLTuner-perl/blob/master/AGENT.md)
 * **Интерактивные HTML-отчеты (v2.9.0+):**
   * [Пример отчета MariaDB 11.4](https://lightpath.fr/MySQLtuner_reports/MySQLTuner-v290_mariadb114/Schemadir/mysqltuner_report.html)
@@ -542,6 +543,12 @@ export MYSQL_PASS=secret
 perl mysqltuner.pl --userenv=MYSQL_USER --passenv=MYSQL_PASS
 ```
 
+**Использование:** использование пользовательского файла конфигурации
+
+```bash
+perl mysqltuner.pl --defaults-file=/path/to/my.cnf
+```
+
 Для полного списка всех доступных опций выполните `perl mysqltuner.pl --help` или обратитесь к документации [USAGE.md](USAGE.md).
 
 Поддержка облака
@@ -712,27 +719,33 @@ host = localhost
 
 Подключение и аутентификация
 
+```
  --host <hostname> Подключиться к удаленному хосту для выполнения тестов (по умолчанию: localhost)
  --socket <socket> Использовать другой сокет для локального подключения
  --port <port>     Порт для подключения (по умолчанию: 3306)
  --user <username> Имя пользователя для аутентификации
  --pass <password> Пароль для аутентификации
  --defaults-file <path> файл по умолчанию для учетных данных
+```
 
 * При ошибке входа выводится реальная ошибка клиента (например, `Client error: ERROR 2026 ... self-signed certificate`) с подсказкой по TLS или сети; «неверные учетные данные» сообщается только для ошибок аутентификации (1045/1698).
 * Ошибка при явно заданных `--pass` или `--login-path` сразу завершает работу (код 1) без попыток других методов входа (`debian.cnf`, файл по умолчанию, запрос пароля).
 
 Поскольку вы используете удаленный хост, используйте параметры для предоставления значений из ОС
 
+```
  --forcemem <size>  Объем установленной оперативной памяти (в мегабайтах или с единицами измерения, например, 15G, 1024M)
  --forceswap <size> Объем настроенной памяти подкачки (в мегабайтах или с единицами измерения)
+```
 
 * Возможно, вам придется связаться с вашим удаленным системным администратором, чтобы спросить, сколько у вас ОЗУ и подкачки
 
 Если в базе данных слишком много таблиц или очень большие таблицы, используйте это:
 
+```
  --skipsize           Не перечислять таблицы и их типы/размеры (по умолчанию: вкл.)
                       (Рекомендуется для серверов с большим количеством таблиц)
+```
 
 **Вопрос: могу ли я установить этот проект с помощью homebrew на Apple Macintosh?**
 

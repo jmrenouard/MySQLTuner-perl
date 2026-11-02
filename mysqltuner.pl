@@ -330,6 +330,13 @@ our %CLI_METADATA = (
         placeholder => '<path>',
         cat         => 'PERFORMANCE'
     },
+    'list-indicators' => {
+        type    => '!',
+        default => 0,
+        desc    =>
+          'Dump all indicators and their metadata in JSON format and exit',
+        cat => 'PERFORMANCE'
+    },
     'feature' => {
         type        => '=s',
         default     => undef,
@@ -634,15 +641,16 @@ our %opt = map {
 
 # Declare shared variables at top level
 our (
-    $devnull,       $basic_password_files, $outputfile,
-    $fh,            $me,                   $good,
-    $bad,           $info,                 $deb,
-    $cmd,           $end,                  $maxlines,
-    $mysqlvermajor, $mysqlverminor,        $mysqlvermicro,
-    @banned_ports,  @dblist,               $physical_memory,
-    $swap_memory,   $duflags,              $xargsflags,
-    $architecture,  $storage_type,         $cloud_type,
-    $is_cloud,      %old_result,           @raw_output_lines
+    $devnull,              $basic_password_files,   $outputfile,
+    $fh,                   $me,                     $good,
+    $bad,                  $info,                   $deb,
+    $cmd,                  $end,                    $maxlines,
+    $mysqlvermajor,        $mysqlverminor,          $mysqlvermicro,
+    @banned_ports,         @dblist,                 $physical_memory,
+    $swap_memory,          $duflags,                $xargsflags,
+    $architecture,         $storage_type,           $cloud_type,
+    $is_cloud,             %old_result,             @raw_output_lines,
+    @REPORT_SECTION_NAMES, @AUDIT_SUBROUTINE_NAMES, @REPORT_SECTIONS
 );
 
 # Gather the options from the command line
@@ -751,6 +759,11 @@ sub setup_environment {
 
     if ( $opt{'version'} ) {
         subheaderprint("MySQLTuner $tunerversion");
+        exit(0);
+    }
+
+    if ( $opt{'list-indicators'} ) {
+        export_indicators();
         exit(0);
     }
 
@@ -938,6 +951,211 @@ sub show_help {
         }
         print "\n";
     }
+    exit 0;
+}
+
+sub _subroutine_to_category {
+    my ( $sub_name, $hint ) = @_;
+    if ( defined $hint && length $hint ) {
+        if ( $hint =~ /^sec/i )  { return 'Security'; }
+        if ( $hint =~ /^sys/i )  { return 'System'; }
+        if ( $hint =~ /^mod/i )  { return 'Modeling'; }
+        if ( $hint =~ /^perf/i ) { return 'Performance'; }
+        if ( $hint =~ /^stor/i ) { return 'Storage'; }
+        if ( $hint =~ /^ha/i )   { return 'HA'; }
+    }
+    if ( $sub_name =~
+        /^(?:validate_mysql_version|mysql_plugins|audit_deprecated_variables)/ )
+    {
+        return 'General';
+    }
+    if ( $sub_name =~ /^(?:system_|log_file_)/ ) { return 'System'; }
+    if ( $sub_name =~
+/^(?:mysql_databases|mysql_tables|mysql_views|mysql_triggers|mysql_routines|mysql_myisam|mysql_innodb|mariadb_aria|mariadb_tokudb|mariadb_xtradb|audit_innodb_ahi|audit_table_definition_cache)/
+      )
+    {
+        return 'Storage';
+    }
+    if ( $sub_name =~ /^(?:mysql_table_structures)/ ) { return 'Modeling'; }
+    if ( $sub_name =~
+/^(?:check_metadata_perf|mysql_indexes|mysql_stats|mysql_pfs|mariadb_threadpool|mariadb_query_cache_info|check_query_anti_patterns|process_sysbench_metrics|historical_comparison|check_workload_traffic|audit_pfs_stage_profiling)/
+      )
+    {
+        return 'Performance';
+    }
+    if ( $sub_name =~
+/^(?:security_|ssl_tls_|cve_|check_security_2_0|audit_tls_ciphers_protocols)/
+      )
+    {
+        return 'Security';
+    }
+    if ( $sub_name =~
+        /^(?:mariadb_galera|get_replication_status|check_replication_advanced)/
+      )
+    {
+        return 'HA';
+    }
+    if ( $sub_name =~ /^(?:predictive_capacity_analysis)/ ) {
+        return 'Capacity';
+    }
+    if ( $sub_name =~ /^(?:generate_auto_fix_snippets)/ ) {
+        return 'Automation';
+    }
+    return 'General';
+}
+
+sub get_indicator_export_data {
+    my $file = __FILE__;
+    if ( !defined $file || !-f $file ) {
+        $file = $0;
+    }
+    if ( !defined $file || !-f $file ) {
+        $file = File::Spec->catfile( dirname(__FILE__), 'mysqltuner.pl' );
+    }
+
+    my @indicators;
+    my %diag_names = ( good => {}, bad => {}, info => {} );
+    my %counts =
+      ( good => 0, bad => 0, info => 0, rec => 0, total => 0, features => 0 );
+    my $id_seq = 0;
+
+    # 1. Primary CLI Options map
+    my %cli_opts;
+    foreach my $opt_spec ( sort keys %CLI_METADATA ) {
+        my ($primary) = split /\|/, $opt_spec;
+        $primary =~ s/[!+=:].*$//;
+        my $meta = $CLI_METADATA{$opt_spec};
+        $cli_opts{$primary} = {
+            cat         => $meta->{cat}  // 'MISC',
+            desc        => $meta->{desc} // '',
+            type        => $meta->{type} // '',
+            default     => $meta->{default},
+            placeholder => $meta->{placeholder},
+        };
+    }
+
+    # 2. Features list
+    my @features = sort ( @REPORT_SECTION_NAMES, @AUDIT_SUBROUTINE_NAMES );
+    $counts{features} = scalar @features;
+
+    # 3. Indicator extraction from script source
+    if ( defined $file && -f $file && open( my $fh, '<', $file ) ) {
+        my $content = do { local $/; <$fh> };
+        close $fh;
+
+        my ($code) = split /^__(?:END|DATA)__/, $content;
+
+        my @sub_positions;
+        while ( $code =~ /^sub\s+([a-zA-Z0-9_]+)\s*\{/mg ) {
+            push @sub_positions, [ pos($code), $1 ];
+        }
+
+        my $sub_idx = 0;
+
+        while ( $code =~
+            /(?<!sub\s)\b(goodprint|badprint|infoprint|push_recommendation)\b/g
+          )
+        {
+            my $func = $1;
+            my $p    = pos($code);
+
+            while ($sub_idx < $#sub_positions
+                && $sub_positions[ $sub_idx + 1 ][0] <= $p )
+            {
+                $sub_idx++;
+            }
+            my $sub_name =
+              @sub_positions ? $sub_positions[$sub_idx][1] : 'main';
+
+            my ( $sev, $type, $desc, $cat_hint );
+            if ( $func eq 'goodprint' ) {
+                $sev  = 'OK';
+                $type = 'good';
+                $counts{good}++;
+            }
+            elsif ( $func eq 'badprint' ) {
+                $sev  = 'WARN';
+                $type = 'bad';
+                $counts{bad}++;
+            }
+            elsif ( $func eq 'infoprint' ) {
+                $sev  = 'INFO';
+                $type = 'info';
+                $counts{info}++;
+            }
+            elsif ( $func eq 'push_recommendation' ) {
+                $sev  = 'REC';
+                $type = 'rec';
+                $counts{rec}++;
+            }
+
+            my $snippet = substr( $code, $p, 400 );
+            if ( $func eq 'push_recommendation' ) {
+                if ( $snippet =~
+/^\s*\(\s*['"](.*?)['"]\s*,\s*(?:['"](.*?)['"]|([^;\)]+))\)/s
+                  )
+                {
+                    $cat_hint = $1;
+                    $desc     = $2 // $3 // '';
+                }
+                elsif ( $snippet =~
+                    /^\s*\(\s*([^,]+)\s*,\s*(?:['"](.*?)['"]|([^;\)]+))\)/s )
+                {
+                    $cat_hint = $1;
+                    $desc     = $2 // $3 // '';
+                }
+            }
+            else {
+                if ( $snippet =~
+                    /^\s*(?:\(\s*|\s+)(?:['"](.*?)['"]|([^;\n]+))/s )
+                {
+                    $desc = $1 // $2 // '';
+                }
+            }
+
+            $desc //= '';
+            $desc =~ s/^\s+|\s+$//g;
+            $desc =~ s/['"]\s*\.\s*['"]//g;
+            $desc =~ s/\s+/ /g;
+
+            my $category = _subroutine_to_category( $sub_name, $cat_hint );
+
+            if ( length($desc) && exists $diag_names{$type} ) {
+                $diag_names{$type}{$desc} = 1;
+            }
+
+            $id_seq++;
+            push @indicators,
+              {
+                id          => sprintf( "IND-%04d", $id_seq ),
+                subroutine  => $sub_name,
+                category    => $category,
+                severity    => $sev,
+                status      => $type,
+                type        => $type,
+                description => $desc,
+              };
+        }
+    }
+
+    $counts{total} =
+      $counts{good} + $counts{bad} + $counts{info} + $counts{rec};
+
+    return {
+        version     => $tunerversion,
+        features    => \@features,
+        summary     => \%counts,
+        cli_options => \%cli_opts,
+        diagnostics => \%diag_names,
+        indicators  => \@indicators,
+    };
+}
+
+sub export_indicators {
+    require JSON::PP;
+    my $payload = get_indicator_export_data();
+    my $json    = JSON::PP->new->utf8->pretty->canonical;
+    print $json->encode($payload);
     exit 0;
 }
 
@@ -18151,6 +18369,56 @@ sub dump_csv_files {
 }
 
 # ---------------------------------------------------------------------------
+# Report sections and audit subroutines inventory
+# ---------------------------------------------------------------------------
+@REPORT_SECTION_NAMES = qw(
+  validate_mysql_version
+  system_recommendations
+  log_file_recommendations
+  check_metadata_perf
+  mysql_databases
+  mysql_tables
+  mysql_table_structures
+  mysql_indexes
+  mysql_views
+  mysql_triggers
+  mysql_routines
+  security_recommendations
+  ssl_tls_recommendations
+  cve_recommendations
+  mysql_plugins
+  mysql_stats
+  mysql_pfs
+  mariadb_threadpool
+  mysql_myisam
+  mysql_innodb
+  mariadb_query_cache_info
+  check_query_anti_patterns
+  mariadb_aria
+  mariadb_tokudb
+  mariadb_xtradb
+  mariadb_galera
+  get_replication_status
+  process_sysbench_metrics
+  historical_comparison
+  predictive_capacity_analysis
+  check_replication_advanced
+  check_security_2_0
+  check_workload_traffic
+  generate_auto_fix_snippets
+);
+
+@AUDIT_SUBROUTINE_NAMES = qw(
+  audit_deprecated_variables
+  audit_innodb_ahi
+  audit_pfs_stage_profiling
+  audit_table_definition_cache
+  audit_tls_ciphers_protocols
+);
+
+@REPORT_SECTIONS = map { no strict 'refs'; \&$_ } @REPORT_SECTION_NAMES;
+
+# ---------------------------------------------------------------------------
 # BEGIN 'MAIN'
 # ---------------------------------------------------------------------------
 if ( !caller ) {
@@ -18187,25 +18455,6 @@ if ( !caller ) {
         goodprint "Terminated successfully";
         exit(0);
     }
-    my @REPORT_SECTIONS = (
-        \&validate_mysql_version,     \&system_recommendations,
-        \&log_file_recommendations,   \&check_metadata_perf,
-        \&mysql_databases,            \&mysql_tables,
-        \&mysql_table_structures,     \&mysql_indexes,
-        \&mysql_views,                \&mysql_triggers,
-        \&mysql_routines,             \&security_recommendations,
-        \&ssl_tls_recommendations,    \&cve_recommendations,
-        \&mysql_plugins,              \&mysql_stats,
-        \&mysql_pfs,                  \&mariadb_threadpool,
-        \&mysql_myisam,               \&mysql_innodb,
-        \&mariadb_query_cache_info,   \&check_query_anti_patterns,
-        \&mariadb_aria,               \&mariadb_tokudb,
-        \&mariadb_xtradb,             \&mariadb_galera,
-        \&get_replication_status,     \&process_sysbench_metrics,
-        \&historical_comparison,      \&predictive_capacity_analysis,
-        \&check_replication_advanced, \&check_security_2_0,
-        \&check_workload_traffic,     \&generate_auto_fix_snippets,
-    );
 
     foreach my $section (@REPORT_SECTIONS) {
         $section->();
@@ -18255,6 +18504,9 @@ B<mysqltuner> [I<OPTIONS>]
 
   # AI Agent integration output (actionable JSON remediation plan)
   perl mysqltuner.pl --agent-json
+
+  # Export indicator catalog and metadata in JSON format (offline, no database connection)
+  perl mysqltuner.pl --list-indicators
 
 =head1 IMPORTANT USAGE GUIDELINES
 
@@ -18497,6 +18749,10 @@ Dump diagnostic data files and Markdown schema summaries to target directory.
 =item B<--schemadir> I<path>
 
 Export individual Markdown documentation files with Mermaid ER diagrams per schema.
+
+=item B<--list-indicators>
+
+Export all diagnostic indicators, features, and metadata in JSON format and exit without establishing a database connection.
 
 =item B<--color>, B<--nocolor>
 
