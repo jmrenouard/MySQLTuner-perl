@@ -3366,7 +3366,7 @@ sub mysql_cloud_discovery {
     }
 
     # 2. GCP Detection (Cloud SQL)
-    elsif (( $myvar{'version_comment'} // '' ) =~ /Google/i
+    elsif ( ( $myvar{'version_comment'} // '' ) =~ /Google/i
         || defined $myvar{'cloudsql_instance_id'}
         || ( $myvar{'socket'} // '' ) =~ m{/cloudsql/} )
     {
@@ -5336,7 +5336,7 @@ sub log_file_recommendations {
     }
 
     # Try to find logs from docker/podman if file doesn't exist locally
-    elsif (!-f "$myvar{'log_error'}"
+    elsif ( !-f "$myvar{'log_error'}"
         && $myvar{'log_error'} !~ /^(docker|podman|kubectl|systemd):/
         && !is_docker() )
     {
@@ -11329,7 +11329,7 @@ sub mariadb_xtradb {
     infoprint "XtraDB is enabled.";
     infoprint "Note that MariaDB 10.2 makes use of InnoDB, not XtraDB."
 
-      # Not implemented
+    # Not implemented
 }
 
 # Recommendations for RocksDB
@@ -13062,7 +13062,7 @@ sub mysql_innodb {
         infoprint
 "innodb_buffer_pool_chunk_size is set to 'autosize' (0) in MariaDB >= 10.8. Skipping chunk size checks.";
     }
-    elsif (!defined( $myvar{'innodb_buffer_pool_chunk_size'} )
+    elsif ( !defined( $myvar{'innodb_buffer_pool_chunk_size'} )
         || $myvar{'innodb_buffer_pool_chunk_size'} == 0
         || !defined( $myvar{'innodb_buffer_pool_size'} )
         || $myvar{'innodb_buffer_pool_size'} == 0
@@ -13158,7 +13158,7 @@ sub mysql_innodb {
         infoprint
 "InnoDB Write Log efficiency: metrics are not reliable (writes > write requests)";
     }
-    elsif (defined $mycalc{'pct_write_efficiency'}
+    elsif ( defined $mycalc{'pct_write_efficiency'}
         && $mycalc{'pct_write_efficiency'} < 90
         && defined $mystat{'Innodb_log_waits'}
         && $mystat{'Innodb_log_waits'} > 0 )
@@ -17422,7 +17422,8 @@ HTML
         }
 
         my $json = JSON->new->allow_nonref;
-        print $json->utf8(1)->pretty( ( $opt{'prettyjson'} ? 1 : 0 ) )
+        print $json->utf8(1)
+          ->pretty( ( $opt{'prettyjson'} ? 1 : 0 ) )
           ->encode($sanitized_res)
           unless ( $opt{'silent'} );
 
@@ -17432,7 +17433,8 @@ HTML
             open my $ofh, q(>), $opt{'outputfile'}
               or die
 "Unable to open $opt{'outputfile'} in write mode. please check permissions for this file or directory";
-            print $ofh $json->utf8(1)->pretty( ( $opt{'prettyjson'} ? 1 : 0 ) )
+            print $ofh $json->utf8(1)
+              ->pretty( ( $opt{'prettyjson'} ? 1 : 0 ) )
               ->encode($sanitized_res);
             close $ofh;
         }
