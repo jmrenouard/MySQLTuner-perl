@@ -3,6 +3,8 @@
 [![GitHub stars](https://img.shields.io/github/stars/major/MySQLTuner-perl?style=for-the-badge&logo=github)](https://github.com/major/MySQLTuner-perl)
 
 [![Project Status](https://opensource.box.com/badges/active.svg)](https://opensource.box.com/badges)
+[![GitHub Release](https://img.shields.io/github/v/release/jmrenouard/MySQLTuner-perl?style=flat-square&logo=github)](https://github.com/jmrenouard/MySQLTuner-perl/releases/latest)
+[![Docker Image Version](https://img.shields.io/docker/v/jmrenouard/mysqltuner?sort=semver&style=flat-square&logo=docker&logoColor=white)](https://hub.docker.com/r/jmrenouard/mysqltuner)
 [![MySQLTuner Version](https://img.shields.io/badge/version-2.9.3-blue.svg)](https://github.com/major/MySQLTuner-perl/releases/tag/v2.9.3)
 [![Test Status](https://github.com/major/MySQLTuner-perl/actions/workflows/pull_request.yml/badge.svg)](https://github.com/major/MySQLTuner-perl/actions)
 [![Average time to resolve an issue](https://isitmaintained.com/badge/resolution/major/MySQLTuner-perl.svg)](https://isitmaintained.com/project/major/MySQLTuner-perl "Average time to resolve an issue")
