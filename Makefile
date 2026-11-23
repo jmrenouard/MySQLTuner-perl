@@ -3,7 +3,7 @@ UPDATE_SUB_VERSION=$(shell echo $(VERSION) | awk -F. '{ print $$1"."$$2"."$$3+1 
 UPDATE_MINOR_VERSION=$(shell echo $(VERSION) | awk -F. '{ print $$1"."$$2+1".0" }')
 UPDATE_MAJOR_VERSION=$(shell echo $(VERSION) | awk -F. '{ print $$1+1".0.0" }')
 
-.PHONY: all help generate_usage generate_release_notes generate_cve generate_features tidy check-tidy installdep_debian increment_sub_version increment_minor_version increment_major_version push pull vendor_setup test test-all test-container test-it unit-tests unit-tests-debug clean clean_examples validate_release docker_build docker_slim docker_push test-triage issue-triage issue-triage-offline issue-triage-major issue-triage-major-offline sync-major-issues sync_versions check_versions sync_translations check_translations
+.PHONY: all help generate_usage generate_release_notes generate_cve generate_features tidy check-tidy installdep_debian increment_sub_version increment_minor_version increment_major_version push pull vendor_setup test test-all test-container test-it unit-tests unit-tests-debug clean clean_examples validate_release docker_build docker_slim docker_push test-triage issue-triage issue-triage-offline issue-triage-major issue-triage-major-offline sync-major-issues sync_versions check_versions sync_translations check_translations docs-install docs-check docs-build docs-serve
 
 all: generate_cve generate_features generate_usage tidy increment_sub_version 
 
@@ -45,6 +45,10 @@ help:
 	@echo "  analyze-output:    Analyze MySQLTuner output (FILE=path/to/output.txt)"
 	@echo "  sync_translations: Synchronize version badges and invariants across README translations"
 	@echo "  check_translations: Check synchronization of multilingual README translations"
+	@echo "  docs-install:      Install MkDocs Material and mike in .venv-docs"
+	@echo "  docs-check:        Validate Diataxis structure, links, governance, and STE"
+	@echo "  docs-build:        Build strict static MkDocs site"
+	@echo "  docs-serve:        Serve MkDocs documentation locally"
 
 
 installdep_debian: setup_commits
@@ -283,3 +287,27 @@ push:
 
 pull:
 	git pull
+
+VENV_DOCS ?= .venv-docs
+
+docs-install:
+	python3 -m venv $(VENV_DOCS)
+	$(VENV_DOCS)/bin/pip install --upgrade pip
+	$(VENV_DOCS)/bin/pip install -r requirements-docs.txt
+
+docs-check:
+	python3 build/check_diataxis_docs.py docs --strict
+
+docs-build:
+	@if [ -x "$(VENV_DOCS)/bin/mkdocs" ]; then \
+		$(VENV_DOCS)/bin/mkdocs build --strict; \
+	else \
+		mkdocs build --strict; \
+	fi
+
+docs-serve:
+	@if [ -x "$(VENV_DOCS)/bin/mkdocs" ]; then \
+		$(VENV_DOCS)/bin/mkdocs serve; \
+	else \
+		mkdocs serve; \
+	fi

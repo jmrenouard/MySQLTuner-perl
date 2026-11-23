@@ -65,3 +65,5 @@ execution.log
 reports/
 .triage_cache/
 .agents/teamwork/
+site/
+.venv-docs/

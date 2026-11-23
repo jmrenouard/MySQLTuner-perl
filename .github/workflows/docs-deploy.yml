@@ -1,0 +1,225 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - master
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Documentation version (e.g. 2.9.4 or dev)"
+        required: false
+        type: string
+      alias:
+        description: "Optional mike alias (e.g. latest)"
+        required: false
+        type: string
+      set_default:
+        description: "Set deployed version or alias as default"
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: "Build without pushing docs-site or deploying via SFTP"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify Documentation Build
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-docs.txt
+
+      - name: Run Diataxis and STE validator
+        run: python3 build/check_diataxis_docs.py docs --strict
+
+      - name: Run markdownlint-cli2
+        uses: DavidAnson/markdownlint-cli2-action@05f32210e84442804257b2a6f20b273450ec8265 # v19
+        with:
+          globs: |
+            docs/**/*.md
+          config: .markdownlint.json
+
+      - name: Build MkDocs site in strict mode
+        run: mkdocs build --strict
+
+  deploy:
+    name: Build Versioned Site and Deploy to IONOS
+    needs: verify
+    if: github.repository == 'jmrenouard/MySQLTuner-perl'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-docs.txt
+
+      - name: Check IONOS SFTP credentials
+        id: check_creds
+        env:
+          IONOS_FTP_SERVER: ${{ secrets.IONOS_FTP_SERVER }}
+          IONOS_FTP_USERNAME: ${{ secrets.IONOS_FTP_USERNAME }}
+          IONOS_FTP_PASSWORD: ${{ secrets.IONOS_FTP_PASSWORD }}
+          IONOS_REMOTE_PATH: ${{ secrets.IONOS_REMOTE_PATH }}
+        run: |
+          if [ -n "$IONOS_FTP_SERVER" ] && [ -n "$IONOS_FTP_USERNAME" ] && [ -n "$IONOS_FTP_PASSWORD" ] && [ -n "$IONOS_REMOTE_PATH" ]; then
+            echo "has_creds=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_creds=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::IONOS SFTP credentials are missing or incomplete; remote SFTP deployment will be skipped."
+          fi
+
+      - name: Resolve documentation version and aliases
+        id: resolve_version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_ALIAS: ${{ github.event.inputs.alias }}
+          INPUT_SET_DEFAULT: ${{ github.event.inputs.set_default }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          VERSION=""
+          ALIAS=""
+          SET_DEFAULT="false"
+          BOOTSTRAP_RELEASE=""
+          DRY_RUN="${INPUT_DRY_RUN:-false}"
+
+          if [ "$EVENT_NAME" = "release" ]; then
+            VERSION="${RELEASE_TAG#v}"
+            if [ "$IS_PRERELEASE" != "true" ]; then
+              ALIAS="latest"
+              SET_DEFAULT="true"
+            fi
+          elif [ "$EVENT_NAME" = "push" ]; then
+            VERSION="dev"
+            git fetch origin docs-site 2>/dev/null || true
+            if ! git cat-file -e origin/docs-site:versions.json 2>/dev/null; then
+              BOOTSTRAP_RELEASE="$(tr -d '[:space:]' < CURRENT_VERSION.txt)"
+            fi
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            RAW_VERSION="${INPUT_VERSION:-}"
+            if [ -z "$RAW_VERSION" ]; then
+              RAW_VERSION="dev"
+            fi
+            VERSION="${RAW_VERSION#v}"
+            ALIAS="${INPUT_ALIAS:-}"
+            SET_DEFAULT="${INPUT_SET_DEFAULT:-false}"
+          fi
+
+          {
+            echo "version=${VERSION}"
+            echo "alias=${ALIAS}"
+            echo "set_default=${SET_DEFAULT}"
+            echo "bootstrap_release=${BOOTSTRAP_RELEASE}"
+            echo "dry_run=${DRY_RUN}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build versioned site with mike
+        env:
+          DOC_VERSION: ${{ steps.resolve_version.outputs.version }}
+          DOC_ALIAS: ${{ steps.resolve_version.outputs.alias }}
+          SET_DEFAULT: ${{ steps.resolve_version.outputs.set_default }}
+          BOOTSTRAP_RELEASE: ${{ steps.resolve_version.outputs.bootstrap_release }}
+          DRY_RUN: ${{ steps.resolve_version.outputs.dry_run }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin docs-site >/dev/null 2>&1; then
+            git fetch origin +refs/heads/docs-site:refs/heads/docs-site
+          fi
+
+          if [ -n "$BOOTSTRAP_RELEASE" ]; then
+            mike deploy --branch docs-site --update-aliases "$BOOTSTRAP_RELEASE" latest
+            mike set-default --branch docs-site latest
+          fi
+
+          if [ -n "$DOC_ALIAS" ]; then
+            mike deploy --branch docs-site --update-aliases "$DOC_VERSION" "$DOC_ALIAS"
+          else
+            mike deploy --branch docs-site --update-aliases "$DOC_VERSION"
+          fi
+
+          if [ "$SET_DEFAULT" = "true" ]; then
+            DEFAULT_TARGET="${DOC_ALIAS:-$DOC_VERSION}"
+            mike set-default --branch docs-site "$DEFAULT_TARGET"
+          fi
+
+          if [ "$DRY_RUN" != "true" ]; then
+            git push origin docs-site
+          fi
+
+      - name: Stage static site and .htaccess for IONOS
+        run: |
+          set -euo pipefail
+          rm -rf _site_deploy
+          mkdir -p _site_deploy
+          git archive docs-site | tar -x -C _site_deploy
+          cp build/docs_htaccess _site_deploy/.htaccess
+          test -f _site_deploy/versions.json
+          test -f _site_deploy/index.html
+          test -f _site_deploy/.htaccess
+
+      - name: Deploy documentation via SFTP to IONOS
+        if: steps.check_creds.outputs.has_creds == 'true' && steps.resolve_version.outputs.dry_run != 'true'
+        uses: wlixcc/SFTP-Deploy-Action@a5ccb9c6211a94cc59404f0fdb2a9936a6dfee64 # v1.2.6
+        with:
+          server: ${{ secrets.IONOS_FTP_SERVER }}
+          username: ${{ secrets.IONOS_FTP_USERNAME }}
+          password: ${{ secrets.IONOS_FTP_PASSWORD }}
+          port: ${{ secrets.IONOS_FTP_PORT || '22' }}
+          sftp_only: true
+          local_path: ./_site_deploy/
+          remote_path: ${{ secrets.IONOS_REMOTE_PATH }}/
+          rsyncArgs: '--delete --exclude=.git --exclude=.github'
+          sftpArgs: '-o ConnectTimeout=10'
+
+      - name: Deploy .htaccess to IONOS
+        if: steps.check_creds.outputs.has_creds == 'true' && steps.resolve_version.outputs.dry_run != 'true'
+        uses: wlixcc/SFTP-Deploy-Action@a5ccb9c6211a94cc59404f0fdb2a9936a6dfee64 # v1.2.6
+        with:
+          server: ${{ secrets.IONOS_FTP_SERVER }}
+          username: ${{ secrets.IONOS_FTP_USERNAME }}
+          password: ${{ secrets.IONOS_FTP_PASSWORD }}
+          port: ${{ secrets.IONOS_FTP_PORT || '22' }}
+          sftp_only: true
+          local_path: ./_site_deploy/.htaccess
+          remote_path: ${{ secrets.IONOS_REMOTE_PATH }}/
+          sftpArgs: '-o ConnectTimeout=10'

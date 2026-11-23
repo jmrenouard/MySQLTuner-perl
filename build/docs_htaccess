@@ -1,0 +1,52 @@
+# Apache configuration for MySQLTuner static versioned documentation
+# Target site: https://mysqltuner.lightpath.fr/
+
+Options -Indexes -MultiViews
+DirectoryIndex index.html
+ErrorDocument 404 /latest/404.html
+
+# Deny access to .htaccess, .htpasswd, and hidden configuration files
+<FilesMatch "^\.ht">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Deny access to .git metadata directories
+    RewriteRule "(^|/)\.git(/|$)" - [F,L]
+
+    # Enforce HTTPS without forcing www. and without legacy index.php rules
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+    # Disable caching for mike version selector manifest and root redirect entry
+    <Files "versions.json">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+    </Files>
+
+    <Files "index.html">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+    </Files>
+</IfModule>
