@@ -1,0 +1,115 @@
+site_name: MySQLTuner Documentation
+site_description: High-performance MySQL, MariaDB, and Percona Server tuning and diagnostic advisor
+site_url: https://mysqltuner.lightpath.fr/
+repo_name: major/MySQLTuner-perl
+repo_url: https://github.com/major/MySQLTuner-perl
+edit_uri: edit/master/docs/
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  logo: assets/images/mtlogo.png
+  favicon: assets/images/mtlogo.png
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra:
+  version:
+    provider: mike
+    default: latest
+
+plugins:
+  - search
+  - mike:
+      alias_type: redirect
+      canonical_version: latest
+
+hooks:
+  - build/mkdocs_hooks.py
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Tutorials:
+      - 01-tutorials/index.md
+      - First Audit Sandbox: 01-tutorials/01-first-audit-sandbox.md
+      - AI & MCP Sandbox Lab: 01-tutorials/02-ai-mcp-sandbox-lab.md
+  - How-To Guides:
+      - 02-how-to-guides/index.md
+      - Deployment:
+          - Remote and Container Audits: 02-how-to-guides/deployment/run-remote-and-container-audit.md
+          - Publish Versioned Docs: 02-how-to-guides/deployment/publish-versioned-docs.md
+      - Operations:
+          - Tune InnoDB Buffer Pool: 02-how-to-guides/operations/tune-innodb-buffer-pool.md
+      - Incident Response:
+          - Diagnose Replication Lag: 02-how-to-guides/incident-response/diagnose-replication-lag.md
+      - Security:
+          - Audit TLS and Auth Plugins: 02-how-to-guides/security/audit-tls-and-auth-plugins.md
+  - Reference:
+      - 03-reference/index.md
+      - Architecture Specs:
+          - Supported Versions: 03-reference/architecture-specs/supported-versions.md
+          - Capabilities & Indicators: 03-reference/architecture-specs/capabilities-and-indicators.md
+      - CLI & Scripts:
+          - CLI Options & Environment: 03-reference/cli-and-scripts/cli-options.md
+          - MCP Server & Agent JSON API: 03-reference/cli-and-scripts/mcp-server-api.md
+      - Configuration:
+          - Thresholds & Data Files: 03-reference/configuration/thresholds-and-files.md
+      - Troubleshooting Codes:
+          - Diagnostic Alerts Matrix: 03-reference/troubleshooting-codes/diagnostic-alerts-matrix.md
+      - Releases Archive:
+          - 03-reference/releases/index.md
+  - Explanation:
+      - 04-explanation/index.md
+      - Architecture Overview:
+          - Diagnostic Pipeline: 04-explanation/architecture-overview/diagnostic-pipeline.md
+          - AI Agent Architecture: 04-explanation/architecture-overview/ai-agent-architecture.md
+      - Design Decisions:
+          - ADR-001 Single-File Perl Architecture: 04-explanation/design-decisions/adr-001-single-file-zero-dependency.md
+          - ADR-002 Versioned Diataxis Docs: 04-explanation/design-decisions/adr-002-versioned-diataxis-docs.md
+      - Deep Dives:
+          - Health Score & Version Rift: 04-explanation/deep-dives/health-score-and-version-rift.md
