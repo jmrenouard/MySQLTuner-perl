@@ -56,7 +56,8 @@ MERMAID_HEADER_PATTERNS = (
 BOX_CORNER_RE = re.compile(r"[┌┐┘╔╗╚╝]")
 ASCII_BOX_EDGE_RE = re.compile(r"\+[-=]{2,}\+")
 TREE_BRANCH_RE = re.compile(r"[├└]─")
-FLOW_ARROW_RE = re.compile(r"(?<![<!])-->|(?<!<!)<--|(?<![=])==>|─+>|▼|▲")
+UNICODE_ARROW_RE = re.compile(r"─+>|▼|▲")
+ASCII_FLOW_TOKENS = ("-->", "<--", "==>")
 TABLE_RULE_RE = re.compile(r"^[+┌├└╠╞╚][─━═\-=+:┬┼┴╦╬╩]+[+┐┤┘╗╣╝]$")
 MULTI_COL_RULE_RE = re.compile(r"(?:[┬┼┴╦╬╩]|^\+[^+]*\+[^+]*\+)")
 CLI_TABLE_FOOTER_RE = re.compile(
@@ -128,14 +129,42 @@ def _parse_fenced_blocks(lines: list[str]) -> list[dict[str, object]]:
     return blocks
 
 
+def _strip_comments_and_bars(body: str) -> str:
+    """Remove HTML comments (including --!>) and progress bars without HTML tag regexes."""
+    out: list[str] = []
+    pos = 0
+    while pos < len(body):
+        start = body.find("<!--", pos)
+        if start == -1:
+            out.append(body[pos:])
+            break
+        out.append(body[pos:start])
+        end_std = body.find("-->", start + 4)
+        end_bang = body.find("--!>", start + 4)
+        ends = [idx for idx in (end_std, end_bang) if idx != -1]
+        if not ends:
+            out.append(" ")
+            break
+        end = min(ends)
+        end_len = 4 if end == end_bang else 3
+        out.append(" ")
+        pos = end + end_len
+    return re.sub(r"\[[=\->\s]+\]", " ", "".join(out))
+
+
+def _has_flow_arrow(cleaned: str) -> bool:
+    if UNICODE_ARROW_RE.search(cleaned):
+        return True
+    return any(tok in cleaned for tok in ASCII_FLOW_TOKENS)
+
+
 def _is_tabular_or_tree(body: str, lang: str) -> bool:
     if lang in {"diff", "patch"}:
         return True
     if TREE_BRANCH_RE.search(body) and not BOX_CORNER_RE.search(body) and not ASCII_BOX_EDGE_RE.search(body):
         return True
-    cleaned = re.sub(r"<!--[\s\S]*?-->", " ", body)
-    cleaned = re.sub(r"\[[=\->\s]+\]", " ", cleaned)
-    if FLOW_ARROW_RE.search(cleaned):
+    cleaned = _strip_comments_and_bars(body)
+    if _has_flow_arrow(cleaned):
         return False
     non_empty = [ln.strip() for ln in body.splitlines() if ln.strip()]
     while non_empty and CLI_TABLE_FOOTER_RE.match(non_empty[-1]):
@@ -248,10 +277,9 @@ class TestDocsTutorialsAndHowTos(unittest.TestCase):
                                 f"Untagged Mermaid block in {md_file}:{blk['open_line']} (lang={lang!r})",
                             )
                 if not _is_tabular_or_tree(body, lang) and lang not in {"diff", "patch"}:
-                    cleaned = re.sub(r"<!--[\s\S]*?-->", " ", body)
-                    cleaned = re.sub(r"\[[=\->\s]+\]", " ", cleaned)
+                    cleaned = _strip_comments_and_bars(body)
                     has_box = bool(BOX_CORNER_RE.search(body)) or bool(ASCII_BOX_EDGE_RE.search(body))
-                    has_flow = bool(FLOW_ARROW_RE.search(cleaned))
+                    has_flow = _has_flow_arrow(cleaned)
                     if lang not in {"sql", "mysql", "psql"}:
                         self.assertFalse(
                             has_box or has_flow,
