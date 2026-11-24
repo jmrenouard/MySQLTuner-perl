@@ -92,6 +92,11 @@ Les agents IA peuvent invoquer ces méthodes JSON-RPC pour auditer et appliquer 
 * **Arguments** :
   - `statement_id` (chaîne, requis) : Identifiant de la transaction retourné par `apply_recommendation`.
 
+#### 5. Outils d'Analyse Domaine
+* **`analyze_buffer_pool`** : Analyse l'efficacité du Buffer Pool InnoDB et les pages sales (`target_ram_percentage`, `include_dirty_pages`).
+* **`diagnose_replication_lag`** : Inspecte l'état des threads IO/SQL et le retard (`max_acceptable_lag_seconds`, `channel_name`).
+* **`detect_fragmented_tables`** : Identifie les tables fragmentées et l'espace récupérable (`min_fragmentation_pct`, `min_table_size_mb`, `schema_filter`).
+
 ---
 
 ### 📊 Ressources MCP Exposées (Observabilité)
@@ -102,7 +107,6 @@ Les agents peuvent lire ces URI pour analyser l'état du serveur sans exécuter 
 | :--- | :--- | :--- |
 | `mysqltuner://reports/latest.json` | `application/json` | Télémétrie brute, variables MySQL, constatations et métriques. |
 | `mysqltuner://reports/latest.html` | `text/html` | Tableau de bord analytique graphique et interactif (style pgBadger). |
-| `mysqltuner://indicators/summary.json` | `application/json` | Synthèse des scores KPI (Global, Performance, Sécurité, Résilience, Modélisation). |
 
 ---
 

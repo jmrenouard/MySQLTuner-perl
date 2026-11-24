@@ -135,8 +135,8 @@ Per la documentazione tecnica completa, consulta la [Guida all'Integrazione IA e
 
 2. **Server Model Context Protocol (MCP)**:
    Un microservizio leggero ([build/mcp_server.py](build/mcp_server.py) e [Dockerfile.mcp](Dockerfile.mcp)) che comunica tramite standard I/O (stdio) via JSON-RPC 2.0.
-   - **Risorse**: `mysqltuner://reports/latest.json`, `mysqltuner://reports/latest.html`, `mysqltuner://indicators/summary.json`
-   - **Strumenti**: `get_latest_audit`, `run_audit`, `apply_recommendation`, `rollback_recommendation`
+   - **Risorse**: `mysqltuner://reports/latest.json`, `mysqltuner://reports/latest.html`
+   - **Strumenti**: `get_latest_audit`, `run_audit`, `analyze_buffer_pool`, `diagnose_replication_lag`, `detect_fragmented_tables`, `apply_recommendation`, `rollback_recommendation`
    ```bash
    docker run -d \
      --name mysqltuner-mcp \

@@ -31,7 +31,7 @@ flowchart TD
 any network or filesystem call occurs.
 
 `setup_environment()` resolves human-readable sizing flags (`--forcemem`, `--forceswap`) via `parse_human_size_to_mb()`,
-locates `basic_passwords.txt` and `vulnerabilities.csv`, and handles offline exits (`--help`, `--version`, and
+locates `basic_passwords.txt` and `vulnerabilities.csv`, and handles offline exits (`--help` and
 `--list-indicators`).
 
 ## Credential Resolution and Fail-Fast Semantics

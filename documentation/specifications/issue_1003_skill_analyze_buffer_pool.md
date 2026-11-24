@@ -18,7 +18,11 @@ This skill allows LLM agents and autonomous DBA routines to deeply evaluate Inno
 
 ### Diagnostic Algorithms
 1. **Cache Efficiency (Hit Ratio)**:
-   $$\text{Hit Ratio} = \left(1 - \frac{\text{Innodb\_buffer\_pool\_reads}}{\text{Innodb\_buffer\_pool\_read\_requests}}\right) \times 100$$
+
+$$
+\text{Hit Ratio} = \left(1 - \frac{\text{Innodb\_buffer\_pool\_reads}}{\text{Innodb\_buffer\_pool\_read\_requests}}\right) \times 100
+$$
+
    - Target: $\ge 99.0\%$ for OLTP workloads.
 2. **Page Utilization**:
    - $\text{Free Page Ratio} = \frac{\text{pages\_free}}{\text{pages\_total}} \times 100$

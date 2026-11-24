@@ -21,8 +21,15 @@ This skill allows LLM agents and DBA tools to scan user tables, compute unused a
    - Excludes system databases: `information_schema`, `mysql`, `performance_schema`, `sys`.
    - Filters tables below `min_table_size_mb` (default: 10MB) to ignore transient or small datasets.
 2. **Fragmentation Calculation**:
-   $$\text{Total Space} = \text{DATA\_LENGTH} + \text{INDEX\_LENGTH} + \text{DATA\_FREE}$$
-   $$\text{Fragmentation Pct} = \left(\frac{\text{DATA\_FREE}}{\text{Total Space}}\right) \times 100$$
+
+$$
+\text{Total Space} = \text{DATA\_LENGTH} + \text{INDEX\_LENGTH} + \text{DATA\_FREE}
+$$
+
+$$
+\text{Fragmentation Pct} = \left(\frac{\text{DATA\_FREE}}{\text{Total Space}}\right) \times 100
+$$
+
 3. **Lock & Impact Assessment**:
    - Tables $< 5\text{GB}$: Recommend direct `OPTIMIZE TABLE \`db\`.\`tbl\`;` (InnoDB online rebuild).
    - Tables $\ge 5\text{GB}$: Flag `is_high_impact: true` and advise off-peak scheduling or online schema change tools (`pt-online-schema-change`, `gh-ost`).

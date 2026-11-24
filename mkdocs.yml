@@ -5,6 +5,14 @@ repo_name: major/MySQLTuner-perl
 repo_url: https://github.com/major/MySQLTuner-perl
 edit_uri: edit/master/docs/
 docs_dir: docs
+exclude_docs: |
+  fr/
+  *.fr.md
+  *_fr.md
+  01-tutoriels/
+  02-guides-pratiques/
+  03-reference-fr/
+  04-explications/
 
 theme:
   name: material
@@ -85,6 +93,7 @@ nav:
           - Publish Versioned Docs: 02-how-to-guides/deployment/publish-versioned-docs.md
       - Operations:
           - Tune InnoDB Buffer Pool: 02-how-to-guides/operations/tune-innodb-buffer-pool.md
+          - Run Offline Verification: 02-how-to-guides/operations/run-offline-verification.md
       - Incident Response:
           - Diagnose Replication Lag: 02-how-to-guides/incident-response/diagnose-replication-lag.md
       - Security:

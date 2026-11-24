@@ -129,6 +129,11 @@ Agents invoke these JSON-RPC methods to interact dynamically with the database e
   }
   ```
 
+#### 5. Domain Analysis Tools
+* **`analyze_buffer_pool`**: Analyzes live InnoDB buffer pool hit rate, dirty pages, and instance sizing (`target_ram_percentage`, `include_dirty_pages`).
+* **`diagnose_replication_lag`**: Inspects IO/SQL thread health and lag (`max_acceptable_lag_seconds`, `channel_name`).
+* **`detect_fragmented_tables`**: Finds fragmented user tables and reclaimable bytes (`min_fragmentation_pct`, `min_table_size_mb`, `schema_filter`).
+
 ---
 
 ### 📊 Exposed MCP Resources (Observability)
@@ -139,7 +144,6 @@ Agents can query the following URI resources to read telemetry without executing
 | :--- | :--- | :--- |
 | `mysqltuner://reports/latest.json` | `application/json` | Accesses the latest cached JSON report containing findings and DB variables status. |
 | `mysqltuner://reports/latest.html` | `text/html` | Retrieves the interactive HTML analytics report (pgBadger-style visuals). |
-| `mysqltuner://indicators/summary.json` | `application/json` | Provides high-level KPI indicators (Performance, Security, Resilience scores). |
 
 ---
 

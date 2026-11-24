@@ -25,6 +25,16 @@ By the end of this tutorial, you will have:
 3. Generated a self-contained HTML diagnostic report using `--reportfile`.
 4. Audited the container directly via `--container` and removed the sandbox cleanly.
 
+## Sandbox Workflow Overview
+
+```mermaid
+flowchart LR
+    Start["1. Start MariaDB Container"] --> Verbose["2. Run Verbose Audit"]
+    Verbose --> Report["3. Generate HTML Report"]
+    Report --> Container["4. Inspect Container Metrics"]
+    Container --> Cleanup["5. Remove Sandbox"]
+```
+
 ## Step 1: Start an Isolated MariaDB Sandbox
 
 Launch a temporary MariaDB 11.4 container with a sandbox password and wait until it accepts queries:
@@ -40,17 +50,19 @@ docker run -d \
 Verify that the database responds inside the container:
 
 ```bash
-docker exec mt-sandbox-db mariadb -uroot -psandbox_pass -e "SELECT VERSION();"
+docker exec mt-sandbox-db mariadb -uroot -psandbox_pass \
+  -e "SELECT VERSION() AS mariadb_version, @@port AS port;"
 ```
 
 Expected output:
 
-```text
-+--------------------+
-| VERSION()          |
-+--------------------+
-| 11.4.x-MariaDB-... |
-+--------------------+
+```mysql
++--------------------+------+
+| mariadb_version    | port |
++--------------------+------+
+| 11.4.x-MariaDB-... | 3306 |
++--------------------+------+
+1 row in set (0.001 sec)
 ```
 
 ## Step 2: Run Your First Verbose Audit

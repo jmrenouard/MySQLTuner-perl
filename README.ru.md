@@ -135,8 +135,8 @@ MySQLTuner нативно поддерживает современные раб
 
 2. **Сервер Model Context Protocol (MCP)**:
    Легковесный микросервис ([build/mcp_server.py](build/mcp_server.py) и [Dockerfile.mcp](Dockerfile.mcp)), взаимодействующий через стандартный ввод/вывод (stdio) по протоколу JSON-RPC 2.0.
-   - **Ресурсы**: `mysqltuner://reports/latest.json`, `mysqltuner://reports/latest.html`, `mysqltuner://indicators/summary.json`
-   - **Инструменты**: `get_latest_audit`, `run_audit`, `apply_recommendation`, `rollback_recommendation`
+   - **Ресурсы**: `mysqltuner://reports/latest.json`, `mysqltuner://reports/latest.html`
+   - **Инструменты**: `get_latest_audit`, `run_audit`, `analyze_buffer_pool`, `diagnose_replication_lag`, `detect_fragmented_tables`, `apply_recommendation`, `rollback_recommendation`
    ```bash
    docker run -d \
      --name mysqltuner-mcp \
