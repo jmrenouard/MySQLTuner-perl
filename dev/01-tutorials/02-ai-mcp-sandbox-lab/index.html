@@ -597,6 +597,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lab-execution-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab Execution Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#step-1-export-the-offline-indicator-catalog" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -886,6 +897,8 @@
       
         
       
+        
+      
     
     
     
@@ -946,6 +959,34 @@
     
   
     Tune InnoDB Buffer Pool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-how-to-guides/operations/run-offline-verification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run Offline Verification
   
 
     
@@ -3650,6 +3691,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lab-execution-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab Execution Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#step-1-export-the-offline-indicator-catalog" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3764,6 +3816,13 @@ disposable local Docker container. Never connect AI write tools to production se
 <li>Built the containerized MCP server image from <code>Dockerfile.mcp</code>.</li>
 <li>Sent JSON-RPC 2.0 <code>initialize</code>, <code>tools/list</code>, and <code>tools/call</code> requests to <code>build/mcp_server.py</code> over stdio.</li>
 </ol>
+<h2 id="lab-execution-flow">Lab Execution Flow<a class="headerlink" href="#lab-execution-flow" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+    Ind["1. Export Indicators (--list-indicators)"] --&gt; DB["2. Start MariaDB Container"]
+    DB --&gt; Agent["3. Collect --agent-json"]
+    Agent --&gt; Img["4. Build Dockerfile.mcp"]
+    Img --&gt; RPC["5. Query mcp_server.py stdio"]
+    RPC --&gt; Clean["6. Clean Up Sandbox"]</code></pre>
 <h2 id="step-1-export-the-offline-indicator-catalog">Step 1: Export the Offline Indicator Catalog<a class="headerlink" href="#step-1-export-the-offline-indicator-catalog" title="Permanent link">&para;</a></h2>
 <p>Before starting a database, test offline indicator discovery. This flag needs no database connection:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span>--list-indicators<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">25</span>

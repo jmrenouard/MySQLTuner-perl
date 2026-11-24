@@ -746,6 +746,8 @@
       
         
       
+        
+      
     
     
     
@@ -806,6 +808,34 @@
     
   
     Tune InnoDB Buffer Pool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-how-to-guides/operations/run-offline-verification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run Offline Verification
   
 
     
@@ -3879,34 +3909,36 @@
 <a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>- test(cli): add test_list_indicators.t validating indicator export contract (#1046)
 <a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>- test(cli): add unit_m4_autofix_agent_json.t for auto-fix comments and agent JSON (#1027)
 <a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>- test(docs): add automated verification test for multi-language README translation parity (#1045)
-<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>- test(docs): add unit_mkdocs_diataxis.t validating Diataxis governance, build hooks, and deploy workflows (#81)
-<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>- test(engine): add unit_m1_index_stats_csv.t for PFS index queries and CSV LIMIT deduplication (#1034)
-<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>- test(engine): add unit_m3_query_dedup_caching.t for query deduplication and diagnostic caching (#1029)
-<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>- test(engine): add unit_m4_connected_auditors.t for diagnostic auditor execution (#1038)
-<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>- test(engine): add unit_ponytail_audit_fixes.t and update JSON, SSH transport, and regression mock assertions (#78)
-<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>- test(engine): add unit_report_accuracy_fixes.t and update SQL modeling assertions (#78)
-<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>- test(galera): add unit_m3_galera_indexes_fk.t for Galera status and index metadata (#1033)
-<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>- test(innodb): add unit_m3_innodb_buffer_pool.t for InnoDB buffer pool sizing calculations (#1026)
-<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>- test(mcp): add unit_mcp_ponytail_fixes.py and mock-CLI failure subtests in unit_skill_buffer_pool.t (#78)
-<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>- test(security): add unit_m1_sql_security.t for SQL mutation removal and shell escaping (#1022)
-<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>- test(system): add unit_m2_env_windows_update.t for Windows getpwuid safety and updater verification (#1028)
-<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>- test(system): add unit_m2_process_swap.t for process memory and Windows swap telemetry (#1024)
-<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>- test(system): add unit_m2_system_kernel_fs.t for command deduplication, sysctl, and filesystem metrics (#1031)
-<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>- test(triage): isolate Python triage tests with TemporaryDirectory and verify SHA-256 invariance in stress_ci_doc_lint_adversarial.t (#78)
-<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>- ci(build): add doc-lint job to PR workflow for POD/CLI parity and invariants (#1044)
-<a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>- ci(docs): add docs-ci.yml quality gate and docs-deploy.yml multi-version IONOS SFTP workflow (#81)
-<a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>- ci(lab): source default configs in build/test_envs.sh from build/get_supported_envs.pl (#78)
-<a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>- ci(release): synchronize release and Docker workflows, Dockerfile layers, VERSION file, and CVE list from master (#75)
-<a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>- docs(build): extend documentation link auditor with multi-artifact version invariants (#1042)
-<a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>- docs(ci): add YAML frontmatter to specifications and align QA traceability matrix (#1042)
-<a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>- docs(cli): eliminate phantom CLI options in POD and USAGE.md and document missing options (#1039)
-<a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>- docs(docs): add GitHub release and Docker image badges across multilingual READMEs (#75)
-<a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>- docs(docs): automate multi-language README translation synchronization and verification (#1045)
-<a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>- docs(docs): synchronize multi-language READMEs, version badges, and full skills catalog (#1042)
-<a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>- docs(docs): synchronize Vietnamese README translation badges and links for v2.9.4 (#78)
-<a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a>- docs(mcp): assign explicit Mermaid subgraph IDs and deduplicate AI agent architecture guides (#1041)
-<a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>- docs(rules): resolve license conflict to GPLv3 and clean external prompt boilerplate (#1041)
-<a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>- docs(system): correct kernel sysctl and Galera parameter typos and document v2.9.4 audit subroutines (#1041)
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>- test(docs): add unit_docs_tutorials_howtos.py and unit_docs_tutorials_howtos.t validating tutorials, STE guides, CLI/MCP contracts, Mermaid diagrams, and i18n (#83)
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>- test(docs): add unit_mkdocs_diataxis.t validating Diataxis governance, build hooks, and deploy workflows (#81)
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>- test(engine): add unit_m1_index_stats_csv.t for PFS index queries and CSV LIMIT deduplication (#1034)
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>- test(engine): add unit_m3_query_dedup_caching.t for query deduplication and diagnostic caching (#1029)
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>- test(engine): add unit_m4_connected_auditors.t for diagnostic auditor execution (#1038)
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>- test(engine): add unit_ponytail_audit_fixes.t and update JSON, SSH transport, and regression mock assertions (#78)
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>- test(engine): add unit_report_accuracy_fixes.t and update SQL modeling assertions (#78)
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>- test(galera): add unit_m3_galera_indexes_fk.t for Galera status and index metadata (#1033)
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>- test(innodb): add unit_m3_innodb_buffer_pool.t for InnoDB buffer pool sizing calculations (#1026)
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>- test(mcp): add unit_mcp_ponytail_fixes.py and mock-CLI failure subtests in unit_skill_buffer_pool.t (#78)
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>- test(security): add unit_m1_sql_security.t for SQL mutation removal and shell escaping (#1022)
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>- test(system): add unit_m2_env_windows_update.t for Windows getpwuid safety and updater verification (#1028)
+<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>- test(system): add unit_m2_process_swap.t for process memory and Windows swap telemetry (#1024)
+<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>- test(system): add unit_m2_system_kernel_fs.t for command deduplication, sysctl, and filesystem metrics (#1031)
+<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>- test(triage): isolate Python triage tests with TemporaryDirectory and verify SHA-256 invariance in stress_ci_doc_lint_adversarial.t (#78)
+<a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>- ci(build): add doc-lint job to PR workflow for POD/CLI parity and invariants (#1044)
+<a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>- ci(docs): add docs-ci.yml quality gate and docs-deploy.yml multi-version IONOS SFTP workflow (#81)
+<a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>- ci(lab): source default configs in build/test_envs.sh from build/get_supported_envs.pl (#78)
+<a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>- ci(release): synchronize release and Docker workflows, Dockerfile layers, VERSION file, and CVE list from master (#75)
+<a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>- docs(build): extend documentation link auditor with multi-artifact version invariants (#1042)
+<a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>- docs(ci): add YAML frontmatter to specifications and align QA traceability matrix (#1042)
+<a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>- docs(cli): eliminate phantom CLI options in POD and USAGE.md and document missing options (#1039)
+<a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>- docs(docs): add GitHub release and Docker image badges across multilingual READMEs (#75)
+<a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>- docs(docs): automate multi-language README translation synchronization and verification (#1045)
+<a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>- docs(docs): fix CLI/MCP documentation drift, tutorial Mermaid diagrams, display math formatting, and MkDocs exclude_docs isolation (#83)
+<a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a>- docs(docs): synchronize multi-language READMEs, version badges, and full skills catalog (#1042)
+<a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>- docs(docs): synchronize Vietnamese README translation badges and links for v2.9.4 (#78)
+<a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>- docs(mcp): assign explicit Mermaid subgraph IDs and deduplicate AI agent architecture guides (#1041)
+<a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>- docs(rules): resolve license conflict to GPLv3 and clean external prompt boilerplate (#1041)
+<a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>- docs(system): correct kernel sysctl and Galera parameter typos and document v2.9.4 audit subroutines (#1041)
 </code></pre></div>
 <h2 id="diagnostic-growth-indicators">📈 Diagnostic Growth Indicators<a class="headerlink" href="#diagnostic-growth-indicators" title="Permanent link">&para;</a></h2>
 <table>

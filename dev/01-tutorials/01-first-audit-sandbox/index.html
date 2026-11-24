@@ -569,6 +569,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sandbox-workflow-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sandbox Workflow Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#step-1-start-an-isolated-mariadb-sandbox" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -886,6 +897,8 @@
       
         
       
+        
+      
     
     
     
@@ -946,6 +959,34 @@
     
   
     Tune InnoDB Buffer Pool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-how-to-guides/operations/run-offline-verification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run Offline Verification
   
 
     
@@ -3650,6 +3691,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sandbox-workflow-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sandbox Workflow Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#step-1-start-an-isolated-mariadb-sandbox" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3764,6 +3816,12 @@ against staging or production database servers.</p>
 <li>Generated a self-contained HTML diagnostic report using <code>--reportfile</code>.</li>
 <li>Audited the container directly via <code>--container</code> and removed the sandbox cleanly.</li>
 </ol>
+<h2 id="sandbox-workflow-overview">Sandbox Workflow Overview<a class="headerlink" href="#sandbox-workflow-overview" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+    Start["1. Start MariaDB Container"] --&gt; Verbose["2. Run Verbose Audit"]
+    Verbose --&gt; Report["3. Generate HTML Report"]
+    Report --&gt; Container["4. Inspect Container Metrics"]
+    Container --&gt; Cleanup["5. Remove Sandbox"]</code></pre>
 <h2 id="step-1-start-an-isolated-mariadb-sandbox">Step 1: Start an Isolated MariaDB Sandbox<a class="headerlink" href="#step-1-start-an-isolated-mariadb-sandbox" title="Permanent link">&para;</a></h2>
 <p>Launch a temporary MariaDB 11.4 container with a sandbox password and wait until it accepts queries:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
@@ -3773,14 +3831,16 @@ against staging or production database servers.</p>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span>mariadb:11.4
 </code></pre></div>
 <p>Verify that the database responds inside the container:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>mt-sandbox-db<span class="w"> </span>mariadb<span class="w"> </span>-uroot<span class="w"> </span>-psandbox_pass<span class="w"> </span>-e<span class="w"> </span><span class="s2">"SELECT VERSION();"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>mt-sandbox-db<span class="w"> </span>mariadb<span class="w"> </span>-uroot<span class="w"> </span>-psandbox_pass<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-e<span class="w"> </span><span class="s2">"SELECT VERSION() AS mariadb_version, @@port AS port;"</span>
 </code></pre></div>
 <p>Expected output:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>+--------------------+
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>| VERSION()          |
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>+--------------------+
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>| 11.4.x-MariaDB-... |
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>+--------------------+
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="o">+--------------------+------+</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="o">|</span><span class="w"> </span><span class="n">mariadb_version</span><span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="k">port</span><span class="w"> </span><span class="o">|</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="o">+--------------------+------+</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="o">|</span><span class="w"> </span><span class="mf">11.4</span><span class="p">.</span><span class="n">x</span><span class="o">-</span><span class="n">MariaDB</span><span class="o">-</span><span class="p">...</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="mi">3306</span><span class="w"> </span><span class="o">|</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="o">+--------------------+------+</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="mi">1</span><span class="w"> </span><span class="k">row</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="kt">set</span><span class="w"> </span><span class="p">(</span><span class="mf">0.001</span><span class="w"> </span><span class="n">sec</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="step-2-run-your-first-verbose-audit">Step 2: Run Your First Verbose Audit<a class="headerlink" href="#step-2-run-your-first-verbose-audit" title="Permanent link">&para;</a></h2>
 <p>Execute <code>mysqltuner.pl</code> from the repository root with <code>--verbose</code> and <code>--forcemem</code> so MySQLTuner knows the simulated
