@@ -16,6 +16,8 @@ ASD-STE100 Issue 9. Use them when you need to execute a specific administrative 
 
 - **[Tune InnoDB Buffer Pool](operations/tune-innodb-buffer-pool.md)**: Measure hit ratios, adjust
   `innodb_buffer_pool_size` safely, verify stability, and revert on regression.
+- **[Run Offline Verification](operations/run-offline-verification.md)**: Compile `mysqltuner.pl`, inspect offline
+  indicators, run unit tests, and validate Diátaxis documentation.
 
 ### Incident Response
 

@@ -20,7 +20,9 @@ Automatically detect and report if `performance_schema` is disabled during labor
 
 To prevent catastrophic application downtime caused by primary key overflow, MySQLTuner computes the headroom ratio for all numeric auto-increment columns:
 
-$$\text{Headroom \%} = \left(\frac{\text{AUTO\_INCREMENT}}{\text{MAX\_INT\_VALUE}}\right) \times 100$$
+$$
+\text{Headroom \%} = \left(\frac{\text{AUTO\_INCREMENT}}{\text{MAX\_INT\_VALUE}}\right) \times 100
+$$
 
 ### Type Threshold Matrix:
 | Column Data Type | Signed Max Value | Unsigned Max Value |

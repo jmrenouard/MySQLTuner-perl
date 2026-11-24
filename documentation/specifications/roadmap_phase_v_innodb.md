@@ -44,7 +44,10 @@ MySQLTuner-perl has successfully integrated infrastructure awareness and modern 
 * **Metric**: `innodb_redo_log_capacity` vs `Innodb_os_log_written`.
 * **Indicator**: Replace deprecated `innodb_log_file_size` and `innodb_log_files_in_group` with dynamic online sizing.
 * **Sizing Rule**: Redo Log Capacity should accommodate at least 1 to 2 hours of peak write transactions to prevent checkpoint stalling:
-  $$\text{Target Redo Capacity} = \left(\frac{\text{Innodb\_os\_log\_written}}{\text{Uptime}}\right) \times 3600 \times 1.5$$
+
+$$
+\text{Target Redo Capacity} = \left(\frac{\text{Innodb\_os\_log\_written}}{\text{Uptime}}\right) \times 3600 \times 1.5
+$$
 
 ### 6. Temporary & Undo lifecycle (MariaDB 11.4+)
 

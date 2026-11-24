@@ -21,8 +21,14 @@ The `detect_fragmented_tables` skill enables autonomous DBA agents to identify w
 | `schema_filter` | string | No | `""` | Optional schema name to restrict the scan. |
 
 ## 📊 Fragmentation Formula & Impact Scoring
-$$\text{Total Allocated Space} = \text{DATA\_LENGTH} + \text{INDEX\_LENGTH} + \text{DATA\_FREE}$$
-$$\text{Fragmentation Pct} = \left(\frac{\text{DATA\_FREE}}{\text{Total Allocated Space}}\right) \times 100$$
+
+$$
+\text{Total Allocated Space} = \text{DATA\_LENGTH} + \text{INDEX\_LENGTH} + \text{DATA\_FREE}
+$$
+
+$$
+\text{Fragmentation Pct} = \left(\frac{\text{DATA\_FREE}}{\text{Total Allocated Space}}\right) \times 100
+$$
 
 - **Tables $< 5\text{GB}$**: Can be defragmented online during low-traffic windows via `OPTIMIZE TABLE \`db\`.\`table\`;`.
 - **Tables $\ge 5\text{GB}$**: Flagged as `is_high_impact: true`. Advise using online tools like `pt-online-schema-change` or `gh-ost` to prevent extended table locks and disk thrashing.

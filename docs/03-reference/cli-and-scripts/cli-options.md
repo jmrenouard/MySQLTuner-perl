@@ -6,7 +6,7 @@ Command-line contract, process exit codes, environment variables, and complete m
 
 | Exit Code | Trigger Condition | Source Location |
 | :--- | :--- | :--- |
-| `0` | Normal diagnostic completion, `--help`, `--version`, `--list-indicators`, or `--agent-json` export | `setup_environment`, `dump_result`, `MAIN` |
+| `0` | Normal diagnostic completion, `--help`, `--list-indicators`, or `--agent-json` export | `setup_environment`, `dump_result`, `MAIN` |
 | `1` | Invalid CLI flag/value, positional argument, unknown `--feature`, mutually exclusive `--json --yaml`, or fatal DB login/privilege failure | `parse_cli_args`, `mysql_setup`, `get_all_vars`, `dump_result` |
 | `2` | Target server answered zero queries (`Questions < 1`) | `calculations()` |
 | `> 0` (Perl `die`) | Unwritable `--outputfile`/`--reportfile`, unreadable `--cvefile`, or directory creation error (`--dumpdir`/`--schemadir`) | `setup_environment`, `cve_recommendations`, `dump_csv_files` |

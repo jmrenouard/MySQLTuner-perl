@@ -58,7 +58,7 @@ graph TD
 
 ## 🔌 Execution Interfaces: MCP & `--agent-json`
 
-- **MCP Server (`build/mcp_server.py`)**: Exposes JSON-RPC stdio tools (`run_audit`, `get_latest_audit`, `apply_recommendation`, `rollback_recommendation`) and resources (`reports/latest.json`, `indicators/summary.json`).
+- **MCP Server (`build/mcp_server.py`)**: Exposes JSON-RPC stdio and SSE tools (`get_latest_audit`, `run_audit`, `analyze_buffer_pool`, `diagnose_replication_lag`, `detect_fragmented_tables`, `apply_recommendation`, `rollback_recommendation`) and resources (`mysqltuner://reports/latest.json`, `mysqltuner://reports/latest.html`).
 - **CLI Telemetry (`--agent-json`)**: Invoking `perl mysqltuner.pl --agent-json` returns machine-readable JSON findings with risk levels, impacts, and reversible SQL statements.
 
 ## 🧠 Autonomous AI Agent Playbook

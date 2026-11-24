@@ -25,6 +25,17 @@ By the end of this lab, you will have:
 3. Built the containerized MCP server image from `Dockerfile.mcp`.
 4. Sent JSON-RPC 2.0 `initialize`, `tools/list`, and `tools/call` requests to `build/mcp_server.py` over stdio.
 
+## Lab Execution Flow
+
+```mermaid
+flowchart LR
+    Ind["1. Export Indicators (--list-indicators)"] --> DB["2. Start MariaDB Container"]
+    DB --> Agent["3. Collect --agent-json"]
+    Agent --> Img["4. Build Dockerfile.mcp"]
+    Img --> RPC["5. Query mcp_server.py stdio"]
+    RPC --> Clean["6. Clean Up Sandbox"]
+```
+
 ## Step 1: Export the Offline Indicator Catalog
 
 Before starting a database, test offline indicator discovery. This flag needs no database connection:
