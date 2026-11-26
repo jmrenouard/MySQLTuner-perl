@@ -54,7 +54,7 @@ Adopt **Option A** as an immutable constitutional constraint for
   `mysqltuner.pl` directly into air-gapped environments and run diagnostics
   immediately using base Perl.
 - **Minimal Attack Surface**: Excluding third-party CPAN modules eliminates
-  external supply-chain dependencies and simplifies security sign-off.
+  external supply chain dependencies and simplifies security sign-off.
 - **Transport Uniformity**: Invoking `mysql` and OS utilities through
   `execute_system_command()` enables identical execution locally, over SSH
   (`--ssh-host`), or inside containers (`--container`).

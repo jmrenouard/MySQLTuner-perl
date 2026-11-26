@@ -41,7 +41,7 @@ Release cycles below reflect `build/ci_matrix.json` and `mysqltuner.pl`
 | Requirement | Minimum | Notes |
 | :--- | :--- | :--- |
 | Perl Interpreter | `5.005`+ (`5.8`+ recommended) | Uses Perl Core modules only; zero CPAN dependencies |
-| Database Uptime | `>= 24` hours (`86400` seconds) | Below 24h triggers inaccurate-recommendation notice |
+| Database Uptime | `>= 24` hours (`86400` seconds) | Below 24 hours triggers inaccurate-recommendation notice |
 | Architecture | 64-bit recommended | 32-bit OS with `> 2 GB` RAM raises instability warning |
 
 ## MySQL Lifecycle Matrix

@@ -2,7 +2,7 @@
 
 Analytical deep dive into MySQLTuner's `40 / 30 / 30` composite health scoring
 model and its version-disambiguation architecture across MySQL
-(`5.7`–`9.x` / `26.10`) and MariaDB (`10.x`–`13.0`).
+(`5.7` to `9.x` / `26.10`) and MariaDB (`10.x` to `13.0`).
 
 ## Weighted Health Score (`40 / 30 / 30`) Analytical Model
 
@@ -11,7 +11,7 @@ healthy memory ratios alongside exposed authentication risks or broken
 replication threads.
 
 `calculate_health_score()` aggregates operational telemetry into a bounded
-`0`–`100` index across three weighted pillars:
+`0` to `100` index across three weighted pillars:
 
 ```mermaid
 flowchart LR
@@ -44,7 +44,7 @@ flowchart LR
   sizing (`res_logs`: `-5` pts), and modeling health (`res_meta`: `-5` if
   `> 5`).
 - **Complementary KPIs**: `calculate_sectional_health_scores()` emits five
-  `0`–`100` domain scores (`General`, `Storage`, `Security`, `Replication`,
+  `0` to `100` domain scores (`General`, `Storage`, `Security`, `Replication`,
   `Modeling`) and a `ResourceSaturation` vector (`CPU`, `Memory`, `Connections`,
   `IO`).
 
@@ -61,7 +61,8 @@ Historically, `calculations()` stripped vendor suffixes from `$myvar{'version'}`
 `$real_vars{'version'}`.
 
 Once MySQL introduced calendar-style releases (`26.7`, `26.10`) alongside
-MariaDB `10.x`–`13.0`, checking `major >= 10` alone misclassified MySQL `26.x`.
+MariaDB `10.x` to `13.0`, checking `major >= 10` alone misclassified MySQL
+`26.x`.
 
 `is_mariadb()` resolves this ambiguity in three deterministic stages:
 
@@ -71,11 +72,11 @@ MariaDB `10.x`–`13.0`, checking `major >= 10` alone misclassified MySQL `26.x`
 2. Compare the unstripped `$real_vars{'version'}` base prefix when `-MariaDB`
    was stripped during `calculations()`.
 3. Fall back to numeric major bounds `( $maj >= 10 && $maj < 26 )`, which
-   isolates MariaDB `10.x`–`13.x` from MySQL `5.5`–`9.x` and `26.x`.
+   isolates MariaDB `10.x` to `13.x` from MySQL `5.5` to `9.x` and `26.x`.
 
 ### Cross-Engine Divergence Points in `mysqltuner.pl`
 
-| Subsystem | MySQL (`5.7`–`9.x` / `26.10`) | MariaDB (`10.x`–`13.0`) | Diagnostic Adaptation |
+| Subsystem | MySQL (`5.7` to `9.x` / `26.10`) | MariaDB (`10.x` to `13.0`) | Diagnostic Adaptation |
 | :--- | :--- | :--- | :--- |
 | Replication Commands | `SHOW REPLICA STATUS` (>= `8.0.22`); `SHOW SLAVE STATUS` (< `8.0.22`) | `SHOW REPLICA STATUS` (>= `10.5`); `SHOW SLAVE STATUS` (< `10.5`) | Probes `REPLICA` variables and falls back to `SLAVE` equivalents |
 | User Auth Store | `mysql.user` (`authentication_string`), `PASSWORD()` removed in `8.0+` | `mysql.global_priv` JSON (`Priv` column) in `10.4+` | Queries `JSON_VALUE(Priv, '$.plugin')` on MariaDB `10.4+`; uses Perl `Digest::SHA` offline |

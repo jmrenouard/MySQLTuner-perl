@@ -1,6 +1,6 @@
 # Tutorials
 
-Welcome to the MySQLTuner learning lab! These step-by-step tutorials teach you
+Welcome to the MySQLTuner learning lab. These step-by-step tutorials teach you
 how to run database diagnostics and AI-assisted audits safely inside isolated
 local Docker sandboxes before touching any shared environment.
 
