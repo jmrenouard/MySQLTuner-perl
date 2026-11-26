@@ -1,6 +1,7 @@
 # CLI Options and Environment Variables
 
-Command-line contract, process exit codes, environment variables, and complete manual for `mysqltuner.pl`.
+Command-line contract, process exit codes, environment variables, and complete
+manual for `mysqltuner.pl`.
 
 ## Process Exit Codes
 
@@ -41,6 +42,8 @@ Command-line contract, process exit codes, environment variables, and complete m
 | `GEN_HISTORICAL` | unset (`0`) | `build/release_gen.pl` | Allows regenerating historical release notes without live script metrics |
 
 ## Upstream POD Manual (`USAGE.md`)
+
+See [USAGE.md](https://github.com/major/MySQLTuner-perl/blob/master/USAGE.md).
 
 <!-- INCLUDE_SOURCE: USAGE.md -->
 

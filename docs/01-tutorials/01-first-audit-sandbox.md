@@ -1,10 +1,12 @@
 # Tutorial: First MySQLTuner Audit Sandbox
 
-> **Learning Goal:** Spin up a disposable MariaDB container, run a full verbose MySQLTuner audit, generate a standalone
-> HTML dashboard report, and clean up the sandbox cleanly.
+> **Learning Goal:** Spin up a disposable MariaDB container, run a full verbose
+> MySQLTuner audit, generate a standalone HTML dashboard report, and clean up
+> the sandbox cleanly.
 >
-> **Environment Warning:** Run this tutorial only in an isolated local Docker sandbox. Never run tutorial commands
-> against staging or production database servers.
+> **Environment Warning:** Run this tutorial only in an isolated local Docker
+> sandbox. Never run tutorial commands against staging or production database
+> servers.
 
 ## Prerequisites
 
@@ -21,9 +23,11 @@ Make sure your workstation has the following tools ready before starting:
 By the end of this tutorial, you will have:
 
 1. Launched an isolated MariaDB 11.4 sandbox container on port `13306`.
-2. Executed `perl mysqltuner.pl --verbose` to inspect storage engines, health score, and recommendations.
+2. Executed `perl mysqltuner.pl --verbose` to inspect storage engines, health
+   score, and recommendations.
 3. Generated a self-contained HTML diagnostic report using `--reportfile`.
-4. Audited the container directly via `--container` and removed the sandbox cleanly.
+4. Audited the container directly via `--container` and removed the sandbox
+   cleanly.
 
 ## Sandbox Workflow Overview
 
@@ -37,7 +41,8 @@ flowchart LR
 
 ## Step 1: Start an Isolated MariaDB Sandbox
 
-Launch a temporary MariaDB 11.4 container with a sandbox password and wait until it accepts queries:
+Launch a temporary MariaDB 11.4 container with a sandbox password and wait
+until it accepts queries:
 
 ```bash
 docker run -d \
@@ -67,8 +72,9 @@ Expected output:
 
 ## Step 2: Run Your First Verbose Audit
 
-Execute `mysqltuner.pl` from the repository root with `--verbose` and `--forcemem` so MySQLTuner knows the simulated
-host RAM allocation for accurate buffer recommendations:
+Execute `mysqltuner.pl` from the repository root with `--verbose` and
+`--forcemem` so MySQLTuner knows the simulated host RAM allocation for accurate
+buffer recommendations:
 
 ```bash
 perl mysqltuner.pl \
@@ -106,13 +112,15 @@ General recommendations:
     Performance_schema should be activated.
 ```
 
-Notice two helpful things right away: MySQLTuner flags when uptime is under 24 hours, and it summarizes a Weighted
-Health Score out of 100 across Performance, Security, and Resilience.
+Notice two helpful things right away: MySQLTuner flags when uptime is under 24
+hours, and it summarizes a Weighted Health Score out of 100 across Performance,
+Security, and Resilience.
 
 ## Step 3: Generate a Standalone HTML Report
 
-MySQLTuner builds an interactive HTML dashboard in pure Perl with zero external dependencies. Run the audit again with
-`--reportfile` to save a self-contained report:
+MySQLTuner builds an interactive HTML dashboard in pure Perl with zero external
+dependencies. Run the audit again with `--reportfile` to save a self-contained
+report:
 
 ```bash
 perl mysqltuner.pl \
@@ -136,13 +144,13 @@ Expected output:
 -rw-r--r-- 1 user user 42K Nov 23 12:00 /tmp/sandbox_report.html
 ```
 
-Open `/tmp/sandbox_report.html` in any browser to view the Health Score gauge, category breakdowns, and collapsible
-console output.
+Open `/tmp/sandbox_report.html` in any browser to view the Health Score gauge,
+category breakdowns, and collapsible console output.
 
 ## Step 4: Audit the Container Directly with `--container`
 
-Instead of passing host RAM manually, pass `--container` to let MySQLTuner inspect cgroup memory limits and container
-logs directly through Docker:
+Instead of passing host RAM manually, pass `--container` to let MySQLTuner
+inspect cgroup memory limits and container logs directly through Docker:
 
 ```bash
 perl mysqltuner.pl \
@@ -154,12 +162,13 @@ perl mysqltuner.pl \
   --verbose
 ```
 
-In container mode, MySQLTuner automatically skips host kernel recommendations (`sysctl`) that do not apply inside an
-isolated container.
+In container mode, MySQLTuner automatically skips host kernel recommendations
+(`sysctl`) that do not apply inside an isolated container.
 
 ## Step 5: Clean Up the Sandbox
 
-Remove the temporary container and generated report file once you finish exploring:
+Remove the temporary container and generated report file once you finish
+exploring:
 
 ```bash
 docker rm -f mt-sandbox-db
@@ -174,9 +183,12 @@ mt-sandbox-db
 
 ## Next Steps
 
-- Run audits over SSH, Podman, or Kubernetes in [How-To Guides](../02-how-to-guides/index.md)
-  or go directly to [Remote and Container Audits](../02-how-to-guides/deployment/run-remote-and-container-audit.md)
-- Inspect every flag and environment variable in [Reference](../03-reference/index.md)
-  and [CLI Options & Environment](../03-reference/cli-and-scripts/cli-options.md)
-- Learn how the Weighted Health Score and version checks work in [Explanation](../04-explanation/index.md)
-  and [Health Score & Version Rift](../04-explanation/deep-dives/health-score-and-version-rift.md)
+- Run audits over SSH, Podman, or Kubernetes in
+  [How-To Guides](../02-how-to-guides/index.md) or go directly to
+  [Remote and Container Audits](../02-how-to-guides/deployment/run-remote-and-container-audit.md)
+- Inspect every flag and environment variable in
+  [Reference](../03-reference/index.md) and
+  [CLI Options & Environment](../03-reference/cli-and-scripts/cli-options.md)
+- Learn how the Weighted Health Score and version checks work in
+  [Explanation](../04-explanation/index.md) and
+  [Health Score & Version Rift](../04-explanation/deep-dives/health-score-and-version-rift.md)

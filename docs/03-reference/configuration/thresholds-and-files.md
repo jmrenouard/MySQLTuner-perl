@@ -1,6 +1,7 @@
 # Thresholds and External Data Files
 
-Reference catalog of external data/credential files, diagnostic alert thresholds, and the upstream security policy.
+Reference catalog of external data/credential files, diagnostic alert
+thresholds, and the upstream security policy.
 
 ## External Data and Credential Files
 
@@ -62,10 +63,13 @@ Reference catalog of external data/credential files, diagnostic alert thresholds
 
 ## Upstream Security Policy
 
+[SECURITY.md](https://github.com/major/MySQLTuner-perl/blob/master/SECURITY.md)
+
 <!-- INCLUDE_SOURCE: SECURITY.md -->
 
 ## Related Documentation
 
-- Finding-to-runbook mapping: [Diagnostic Alerts Matrix](../troubleshooting-codes/diagnostic-alerts-matrix.md)
+- Finding-to-runbook mapping:
+  [Diagnostic Alerts Matrix](../troubleshooting-codes/diagnostic-alerts-matrix.md)
 - TLS and auth audit procedure:
   [Audit TLS and Authentication Plugins](../../02-how-to-guides/security/audit-tls-and-auth-plugins.md)

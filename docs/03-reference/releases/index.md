@@ -1,6 +1,7 @@
 # Release Notes Archive
 
-Versioned release index dynamically populated from `releases/v*.md` during the MkDocs build.
+Versioned release index dynamically populated from `releases/v*.md` during the
+MkDocs build.
 
 ## Documentation Version Channels
 
@@ -12,10 +13,13 @@ Versioned release index dynamically populated from `releases/v*.md` during the M
 
 ## Published Releases
 
+Source: [GitHub Releases](https://github.com/major/MySQLTuner-perl/releases).
+
 <!-- AUTO_RELEASES_TABLE -->
 
 ## Related Documentation
 
 - Versioning and hosting architecture:
-  [ADR-002 Versioned Diátaxis Docs](../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs.md)
-- Publishing procedure: [Publish Versioned Documentation](../../02-how-to-guides/deployment/publish-versioned-docs.md)
+  [ADR-002: Versioned Docs](../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture.md)
+- Publishing procedure:
+  [Publish Versioned Documentation](../../02-how-to-guides/deployment/publish-versioned-docs.md)

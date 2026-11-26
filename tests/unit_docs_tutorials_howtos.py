@@ -188,7 +188,14 @@ def _is_tabular_or_tree(body: str, lang: str) -> bool:
 class TestDocsTutorialsAndHowTos(unittest.TestCase):
     def test_diataxis_validator_and_required_pages(self) -> None:
         proc = subprocess.run(
-            [sys.executable, str(REPO_ROOT / "build" / "check_diataxis_docs.py"), str(DOCS_DIR), "--strict"],
+            [
+                sys.executable,
+                str(REPO_ROOT / "build" / "check_diataxis_docs.py"),
+                str(DOCS_DIR),
+                "--strict",
+                "--mkdocs-config",
+                str(REPO_ROOT / "mkdocs.yml"),
+            ],
             cwd=REPO_ROOT,
             capture_output=True,
             text=True,
@@ -433,18 +440,53 @@ class TestDocsTutorialsAndHowTos(unittest.TestCase):
                     self.assertEqual(ln, "$$", f"Display math delimiter must be column-0 '$$' alone at {path}:{idx}: {ln!r}")
 
     def test_markdownlint_line_length_in_docs(self) -> None:
+        fence_re = re.compile(r"^\s*(`{3,}|~{3,})")
+        heading_re = re.compile(r"^#{1,6}\s")
+        table_re = re.compile(r"^\s*\|")
+        hr_re = re.compile(r"^\s*(?:[-*_]\s*){3,}$")
+        link_ref_re = re.compile(r"^\s*\[[^\]]+\]:\s")
+        link_full_re = re.compile(r"(!?\[[^\]]*\])\(([^)\n]+)\)")
+        bare_url_re = re.compile(r"https?://[^\s)>]+")
+
+        def _is_long_url_exempt(line: str) -> bool:
+            tokens: list[str] = []
+
+            def _strip_link(match: re.Match[str]) -> str:
+                tokens.append(match.group(2).strip())
+                return f"{match.group(1)}()"
+
+            without_links = link_full_re.sub(_strip_link, line)
+
+            def _strip_url(match: re.Match[str]) -> str:
+                tokens.append(match.group(0))
+                return ""
+
+            stripped = bare_url_re.sub(_strip_url, without_links)
+            return len(stripped) <= 80 and sum(1 for tok in tokens if len(tok) > 40) == 1
+
         for md_file in sorted(DOCS_DIR.rglob("*.md")):
-            in_fence = False
+            fence_char: str | None = None
+            fence_len = 0
             for idx, ln in enumerate(md_file.read_text(encoding="utf-8").splitlines(), start=1):
-                if re.match(r"^\s*(?:```|~~~)", ln):
-                    in_fence = not in_fence
+                if fence_char is not None:
+                    if re.match(rf"^\s*{re.escape(fence_char)}{{{fence_len},}}\s*$", ln):
+                        fence_char = None
+                        fence_len = 0
                     continue
-                if in_fence or ln.lstrip().startswith("|"):
+                fence_match = fence_re.match(ln)
+                if fence_match:
+                    marker = fence_match.group(1)
+                    fence_char = marker[0]
+                    fence_len = len(marker)
+                    continue
+                if heading_re.match(ln) or table_re.match(ln) or hr_re.match(ln) or link_ref_re.match(ln):
+                    continue
+                if len(ln) > 80 and _is_long_url_exempt(ln):
                     continue
                 self.assertLessEqual(
                     len(ln),
-                    120,
-                    f"MD013 line length > 120 ({len(ln)} chars) at {md_file}:{idx}: {ln}",
+                    80,
+                    f"MD013 line length > 80 ({len(ln)} chars) at {md_file}:{idx}: {ln}",
                 )
 
 

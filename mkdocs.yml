@@ -6,6 +6,8 @@ repo_url: https://github.com/major/MySQLTuner-perl
 edit_uri: edit/master/docs/
 docs_dir: docs
 exclude_docs: |
+  ACTION_LOGBOOK.md
+  RCA_REGISTER.md
   fr/
   *.fr.md
   *_fr.md
@@ -48,6 +50,7 @@ extra:
   version:
     provider: mike
     default: latest
+    alias: true
 
 plugins:
   - search
@@ -71,14 +74,11 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.tabbed:
-      alternate_style: true
 
 nav:
   - Home: index.md
@@ -119,6 +119,6 @@ nav:
           - AI Agent Architecture: 04-explanation/architecture-overview/ai-agent-architecture.md
       - Design Decisions:
           - ADR-001 Single-File Perl Architecture: 04-explanation/design-decisions/adr-001-single-file-zero-dependency.md
-          - ADR-002 Versioned Diataxis Docs: 04-explanation/design-decisions/adr-002-versioned-diataxis-docs.md
+          - ADR-002 Versioned Documentation Architecture: 04-explanation/design-decisions/adr-002-versioned-documentation-architecture.md
       - Deep Dives:
           - Health Score & Version Rift: 04-explanation/deep-dives/health-score-and-version-rift.md
