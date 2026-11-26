@@ -3495,14 +3495,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3741,22 +3741,30 @@
 
 
 <h1 id="audit-tls-and-authentication-plugins">Audit TLS and Authentication Plugins<a class="headerlink" href="#audit-tls-and-authentication-plugins" title="Permanent link">&para;</a></h1>
-<p>Refer to <a href="../../../03-reference/troubleshooting-codes/diagnostic-alerts-matrix/">Diagnostic Alerts Matrix</a> and
-<a href="../../../03-reference/configuration/thresholds-and-files/">Thresholds and Data Files</a> before you start.</p>
+<p>Refer to
+<a href="../../../03-reference/troubleshooting-codes/diagnostic-alerts-matrix/">Diagnostic Alerts Matrix</a>
+and <a href="../../../03-reference/configuration/thresholds-and-files/">Thresholds and Data Files</a>
+before you start.</p>
 <h2 id="preconditions">Preconditions<a class="headerlink" href="#preconditions" title="Permanent link">&para;</a></h2>
 <p>Before you start this procedure, make sure that these conditions apply:</p>
 <ol>
-<li>You have administrative read access to <code>mysql.user</code> (or <code>mysql.global_priv</code> on MariaDB 10.4+).</li>
-<li>The <code>openssl</code> binary exists locally if you audit certificate expiration dates.</li>
-<li>You know which client drivers connect to the database server before you alter authentication plugins.</li>
+<li>You have administrative read access to <code>mysql.user</code> (or <code>mysql.global_priv</code>
+   on MariaDB 10.4+).</li>
+<li>The <code>openssl</code> binary exists locally if you audit certificate expiration
+   dates.</li>
+<li>You know which client drivers connect to the database server before you
+   alter authentication plugins.</li>
 </ol>
 <h2 id="safety-precautions">Safety Precautions<a class="headerlink" href="#safety-precautions" title="Permanent link">&para;</a></h2>
-<p><strong>CAUTION:</strong> Verify client driver compatibility before you switch user accounts to <code>caching_sha2_password</code> or
-<code>ed25519</code>. Older client libraries fail to connect after an incompatible plugin change.</p>
-<p><strong>NOTE:</strong> MySQLTuner skips SSL/TLS checks when the server accepts connections only on <code>localhost</code>.</p>
+<p><strong>CAUTION:</strong> Verify client driver compatibility before you switch user accounts
+to <code>caching_sha2_password</code> or <code>ed25519</code>. Older client libraries fail to connect
+after an incompatible plugin change.</p>
+<p><strong>NOTE:</strong> MySQLTuner skips SSL/TLS checks when the server accepts connections
+only on <code>localhost</code>.</p>
 <h2 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Run <code>mysqltuner.pl</code> on TCP with <code>--dumpdir</code> to examine TLS parameters and export CSV findings:</li>
+<li>Run <code>mysqltuner.pl</code> on TCP with <code>--dumpdir</code> to examine TLS parameters and
+   export CSV findings:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--host<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span><span class="se">\</span>
@@ -3766,14 +3774,16 @@
 </code></pre></div>
 <ol>
 <li>
-<p>Examine <code>SSL/TLS Security Recommendations</code> and <code>Authentication Plugin Security</code> in the output.</p>
+<p>Examine <code>SSL/TLS Security Recommendations</code> and
+   <code>Authentication Plugin Security</code> in the output.</p>
 </li>
 <li>
 <p>Examine exported <code>/tmp/tls-audit/ssl_issues.csv</code> and
    <code>/tmp/tls-audit/insecure_authentication_plugins.csv</code> (mode <code>0600</code>).</p>
 </li>
 <li>
-<p>If <code>tls_version</code> includes <code>TLSv1</code> or <code>TLSv1.1</code>, restrict <code>[mysqld]</code> in <code>my.cnf</code> to modern protocols:</p>
+<p>If <code>tls_version</code> includes <code>TLSv1</code> or <code>TLSv1.1</code>, restrict <code>[mysqld]</code> in
+   <code>my.cnf</code> to modern protocols:</p>
 </li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[mysqld]</span>
@@ -3782,7 +3792,8 @@
 </code></pre></div>
 <ol>
 <li>
-<p>If <code>ssl_cert</code> or <code>ssl_ca</code> expires in less than 30 days, renew and reload the TLS certificates.</p>
+<p>If <code>ssl_cert</code> or <code>ssl_ca</code> expires in less than 30 days, renew and reload the
+   TLS certificates.</p>
 </li>
 <li>
 <p>For remote accounts that do not enforce SSL, enforce TLS per account:</p>
@@ -3791,7 +3802,8 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">ALTER</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="s1">'app_user'</span><span class="o">@</span><span class="s1">'10.0.%'</span><span class="w"> </span><span class="n">REQUIRE</span><span class="w"> </span><span class="n">SSL</span><span class="p">;</span>
 </code></pre></div>
 <ol>
-<li>For accounts that use <code>mysql_native_password</code> or <code>sha256_password</code>, migrate to modern plugins:</li>
+<li>For accounts that use <code>mysql_native_password</code> or <code>sha256_password</code>, migrate
+   to modern plugins:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">-- MySQL 8.0+ / 8.4+ / 9.x</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">ALTER</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="s1">'app_user'</span><span class="o">@</span><span class="s1">'10.0.%'</span><span class="w"> </span><span class="n">IDENTIFIED</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="n">caching_sha2_password</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="s1">'strong_secret'</span><span class="p">;</span>
@@ -3802,34 +3814,43 @@
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
-<p>Run <code>mysqltuner.pl --host 127.0.0.1 --verbose --defaults-file ~/.my.cnf</code> again.</p>
+<p>Run <code>mysqltuner.pl --host 127.0.0.1 --verbose --defaults-file ~/.my.cnf</code>
+   again.</p>
 </li>
 <li>
-<p>Make sure that <code>Only secure TLS versions enabled: TLSv1.2,TLSv1.3</code> and <code>require_secure_transport is ON</code> appear.</p>
+<p>Make sure that <code>Only secure TLS versions enabled: TLSv1.2,TLSv1.3</code> and
+   <code>require_secure_transport is ON</code> appear.</p>
 </li>
 <li>
-<p>Make sure that <code>No users found using insecure or deprecated authentication plugins</code> appears.</p>
+<p>Make sure that
+   <code>No users found using insecure or deprecated authentication plugins</code> appears.</p>
 </li>
 <li>
-<p>Make sure that <code>All remote users have SSL enforcement active</code> appears in the security summary.</p>
+<p>Make sure that <code>All remote users have SSL enforcement active</code> appears in the
+   security summary.</p>
 </li>
 <li>
-<p>Remove the temporary audit directory <code>/tmp/tls-audit</code> after your examination.</p>
+<p>Remove the temporary audit directory <code>/tmp/tls-audit</code> after your
+   examination.</p>
 </li>
 </ol>
 <h2 id="rollback">Rollback<a class="headerlink" href="#rollback" title="Permanent link">&para;</a></h2>
-<p>If legacy applications fail TLS handshakes or plugin authentication, restore access immediately:</p>
+<p>If legacy applications fail TLS handshakes or plugin authentication, restore
+access immediately:</p>
 <ol>
-<li>If <code>require_secure_transport = ON</code> blocks unencrypted legacy clients temporarily, run:</li>
+<li>If <code>require_secure_transport = ON</code> blocks unencrypted legacy clients
+   temporarily, run:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">SET</span><span class="w"> </span><span class="k">GLOBAL</span><span class="w"> </span><span class="n">require_secure_transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">OFF</span><span class="p">;</span>
 </code></pre></div>
 <ol>
 <li>
-<p>Revert an affected account to its previous authentication plugin or TLS requirement on MySQL 8.0/8.4 or MariaDB.</p>
+<p>Revert an affected account to its previous authentication plugin or TLS
+   requirement on MySQL 8.0/8.4 or MariaDB.</p>
 </li>
 <li>
-<p>Restore the previous <code>tls_version</code> value in <code>my.cnf</code> and reload TLS if legacy clients need an interim window.</p>
+<p>Restore the previous <code>tls_version</code> value in <code>my.cnf</code> and reload TLS if
+   legacy clients need an interim window.</p>
 </li>
 </ol>
 <h2 id="related-topics">Related Topics<a class="headerlink" href="#related-topics" title="Permanent link">&para;</a></h2>
@@ -3932,7 +3953,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

@@ -3495,14 +3495,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3741,8 +3741,9 @@
 
 
 <h1 id="run-offline-verification-tests">Run Offline Verification Tests<a class="headerlink" href="#run-offline-verification-tests" title="Permanent link">&para;</a></h1>
-<p>Refer to <a href="../../../03-reference/cli-and-scripts/cli-options/">CLI Options and Environment</a> before you start this
-procedure.</p>
+<p>Refer to
+<a href="../../../03-reference/cli-and-scripts/cli-options/">CLI Options and Environment</a>
+before you start this procedure.</p>
 <h2 id="preconditions">Preconditions<a class="headerlink" href="#preconditions" title="Permanent link">&para;</a></h2>
 <p>Before you start this procedure, make sure that these conditions apply:</p>
 <ol>
@@ -3751,9 +3752,10 @@ procedure.</p>
 <li>A local checkout of <code>MySQLTuner-perl</code> is clean on a dedicated branch.</li>
 </ol>
 <h2 id="safety-precautions">Safety Precautions<a class="headerlink" href="#safety-precautions" title="Permanent link">&para;</a></h2>
-<p><strong>CAUTION:</strong> Run tests inside an isolated checkout or clean branch. Never write test output files over production
-databases or host directories.</p>
-<p><strong>NOTE:</strong> The offline verification commands require zero network access and zero database containers.</p>
+<p><strong>CAUTION:</strong> Run tests inside an isolated checkout or clean branch. Never write
+test output files over production databases or host directories.</p>
+<p><strong>NOTE:</strong> The offline verification commands require zero network access and zero
+database containers.</p>
 <h2 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Verify Perl syntax on <code>mysqltuner.pl</code>:</li>
@@ -3761,7 +3763,8 @@ databases or host directories.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>perl<span class="w"> </span>-c<span class="w"> </span>mysqltuner.pl
 </code></pre></div>
 <ol>
-<li>Run <code>mysqltuner.pl</code> with <code>--help</code> and make sure that help text displays without errors:</li>
+<li>Run <code>mysqltuner.pl</code> with <code>--help</code> and make sure that help text displays
+   without errors:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span>--help
 </code></pre></div>
@@ -3771,7 +3774,8 @@ databases or host directories.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span>--list-indicators<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">20</span>
 </code></pre></div>
 <ol>
-<li>Run <code>build/mcp_server.py</code> with <code>--help</code> to verify the MCP server entrypoint:</li>
+<li>Run <code>build/mcp_server.py</code> with <code>--help</code> to verify the MCP server
+   entrypoint:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">CACHE_DIR</span><span class="o">=</span>/tmp/mt-mcp-cache<span class="w"> </span>python3<span class="w"> </span>build/mcp_server.py<span class="w"> </span>--help
 </code></pre></div>
@@ -3786,26 +3790,30 @@ databases or host directories.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>make<span class="w"> </span>test-triage
 </code></pre></div>
 <ol>
-<li>Run the Diataxis structure and STE documentation checks:</li>
+<li>Run the documentation structure and style checks:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>make<span class="w"> </span>docs-check
 </code></pre></div>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
-<p>Make sure that <code>perl -c mysqltuner.pl</code> prints <code>mysqltuner.pl syntax OK</code> and exits with code <code>0</code>.</p>
+<p>Make sure that <code>perl -c mysqltuner.pl</code> prints <code>mysqltuner.pl syntax OK</code> and
+   exits with code <code>0</code>.</p>
 </li>
 <li>
-<p>Make sure that <code>make unit-tests</code>, <code>make test-triage</code>, and <code>make docs-check</code> exit with code <code>0</code>.</p>
+<p>Make sure that <code>make unit-tests</code>, <code>make test-triage</code>, and <code>make docs-check</code>
+   exit with code <code>0</code>.</p>
 </li>
 <li>
-<p>Examine <code>git status --short</code> and make sure that zero temporary test artifacts remain on disk:</p>
+<p>Examine <code>git status --short</code> and make sure that zero temporary test
+   artifacts remain on disk:</p>
 </li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>git<span class="w"> </span>status<span class="w"> </span>--short
 </code></pre></div>
 <h2 id="rollback">Rollback<a class="headerlink" href="#rollback" title="Permanent link">&para;</a></h2>
-<p>If a check fails after local edits, revert the modified file and run the suite again:</p>
+<p>If a check fails after local edits, revert the modified file and run the suite
+again:</p>
 <ol>
 <li>Discard broken test or documentation changes on the current branch:</li>
 </ol>
@@ -3915,7 +3923,7 @@ databases or host directories.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

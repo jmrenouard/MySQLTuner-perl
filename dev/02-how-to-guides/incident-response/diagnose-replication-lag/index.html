@@ -3495,14 +3495,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3741,27 +3741,34 @@
 
 
 <h1 id="diagnose-replication-lag">Diagnose Replication Lag<a class="headerlink" href="#diagnose-replication-lag" title="Permanent link">&para;</a></h1>
-<p>Refer to <a href="../../../03-reference/troubleshooting-codes/diagnostic-alerts-matrix/">Diagnostic Alerts Matrix</a> for lag
-thresholds and alert definitions.</p>
+<p>Refer to
+<a href="../../../03-reference/troubleshooting-codes/diagnostic-alerts-matrix/">Diagnostic Alerts Matrix</a>
+for lag thresholds and alert definitions.</p>
 <h2 id="preconditions">Preconditions<a class="headerlink" href="#preconditions" title="Permanent link">&para;</a></h2>
 <p>Before you start this procedure, make sure that these conditions apply:</p>
 <ol>
-<li>You have database access credentials with <code>REPLICATION CLIENT</code> or <code>REPLICA MONITOR</code> privileges.</li>
-<li>You have <code>SUPER</code> or <code>REPLICATION_SLAVE_ADMIN</code> privileges if you must adjust worker threads.</li>
+<li>You have database access credentials with <code>REPLICATION CLIENT</code> or
+   <code>REPLICA MONITOR</code> privileges.</li>
+<li>You have <code>SUPER</code> or <code>REPLICATION_SLAVE_ADMIN</code> privileges if you must adjust
+   worker threads.</li>
 <li>You know the primary source hostname and current maintenance window status.</li>
 </ol>
 <h2 id="safety-precautions">Safety Precautions<a class="headerlink" href="#safety-precautions" title="Permanent link">&para;</a></h2>
-<p><strong>CAUTION:</strong> Never skip replication errors or reset binary log coordinates without DBA authorization. Incorrect
-position resets cause permanent data divergence between primary and replica nodes.</p>
-<p><strong>NOTE:</strong> MySQL 8.0.22+ and MariaDB 10.5+ use <code>REPLICA</code> syntax, while older versions use <code>SLAVE</code>.</p>
+<p><strong>CAUTION:</strong> Never skip replication errors or reset binary log coordinates
+without DBA authorization. Incorrect position resets cause permanent data
+divergence between primary and replica nodes.</p>
+<p><strong>NOTE:</strong> MySQL 8.0.22+ and MariaDB 10.5+ use <code>REPLICA</code> syntax, while older
+versions use <code>SLAVE</code>.</p>
 <h2 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Run <code>mysqltuner.pl</code> on the replica node to examine topology, thread state, GTID gaps, and lag:</li>
+<li>Run <code>mysqltuner.pl</code> on the replica node to examine topology, thread state,
+   GTID gaps, and lag:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span>--verbose<span class="w"> </span>--defaults-file<span class="w"> </span>~/.my.cnf
 </code></pre></div>
 <ol>
-<li>Query the replica status directly in SQL to examine exact thread fields and errors:</li>
+<li>Query the replica status directly in SQL to examine exact thread fields and
+   errors:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">SHOW</span><span class="w"> </span><span class="n">REPLICA</span><span class="w"> </span><span class="n">STATUS</span><span class="err">\</span><span class="k">G</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">-- On MySQL &lt; 8.0.22 or MariaDB &lt; 10.5:</span>
@@ -3769,16 +3776,20 @@ position resets cause permanent data divergence between primary and replica node
 </code></pre></div>
 <ol>
 <li>
-<p>Examine <code>Replica_IO_Running</code> and <code>Replica_SQL_Running</code> (or <code>Slave_IO_Running</code> and <code>Slave_SQL_Running</code>).</p>
+<p>Examine <code>Replica_IO_Running</code> and <code>Replica_SQL_Running</code> (or <code>Slave_IO_Running</code>
+   and <code>Slave_SQL_Running</code>).</p>
 </li>
 <li>
-<p>If either thread shows <code>No</code>, examine <code>Last_IO_Error</code>, <code>Last_SQL_Error</code>, and <code>Last_SQL_Errno</code> immediately.</p>
+<p>If either thread shows <code>No</code>, examine <code>Last_IO_Error</code>, <code>Last_SQL_Error</code>, and
+   <code>Last_SQL_Errno</code> immediately.</p>
 </li>
 <li>
-<p>Fix network or privilege failures for IO thread errors before you run <code>START REPLICA;</code>.</p>
+<p>Fix network or privilege failures for IO thread errors before you run
+   <code>START REPLICA;</code>.</p>
 </li>
 <li>
-<p>If the two threads show <code>Yes</code> and <code>Seconds_Behind_Source</code> climbs, examine the worker count:</p>
+<p>If the two threads show <code>Yes</code> and <code>Seconds_Behind_Source</code> climbs, examine the
+   worker count:</p>
 </li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">-- MySQL 8.0+</span>
@@ -3791,7 +3802,8 @@ position resets cause permanent data divergence between primary and replica node
 <p>Record the current worker count and mode before you make a change.</p>
 </li>
 <li>
-<p>If parallel worker threads equal <code>0</code> or <code>1</code>, stop the SQL thread and increase worker concurrency:</p>
+<p>If parallel worker threads equal <code>0</code> or <code>1</code>, stop the SQL thread and
+   increase worker concurrency:</p>
 </li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">-- MySQL 8.0+ example</span>
@@ -3800,7 +3812,8 @@ position resets cause permanent data divergence between primary and replica node
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">START</span><span class="w"> </span><span class="n">REPLICA</span><span class="w"> </span><span class="n">SQL_THREAD</span><span class="p">;</span>
 </code></pre></div>
 <ol>
-<li>On MariaDB 10.5 or newer, set <code>slave_parallel_threads</code> and <code>slave_parallel_mode = 'optimistic'</code>:</li>
+<li>On MariaDB 10.5 or newer, set <code>slave_parallel_threads</code> and
+   <code>slave_parallel_mode = 'optimistic'</code>:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">STOP</span><span class="w"> </span><span class="n">SLAVE</span><span class="w"> </span><span class="n">SQL_THREAD</span><span class="p">;</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">SET</span><span class="w"> </span><span class="k">GLOBAL</span><span class="w"> </span><span class="n">slave_parallel_threads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
@@ -3808,22 +3821,27 @@ position resets cause permanent data divergence between primary and replica node
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">START</span><span class="w"> </span><span class="n">SLAVE</span><span class="w"> </span><span class="n">SQL_THREAD</span><span class="p">;</span>
 </code></pre></div>
 <ol>
-<li>Examine <code>binlog_format</code> on the primary source and make sure that <code>ROW</code> format is active.</li>
+<li>Examine <code>binlog_format</code> on the primary source and make sure that <code>ROW</code>
+    format is active.</li>
 </ol>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
-<p>Run <code>SHOW REPLICA STATUS\G</code> (or <code>SHOW SLAVE STATUS\G</code>) and make sure that the two threads show <code>Yes</code>.</p>
+<p>Run <code>SHOW REPLICA STATUS\G</code> (or <code>SHOW SLAVE STATUS\G</code>) and make sure that the
+   two threads show <code>Yes</code>.</p>
 </li>
 <li>
-<p>Monitor <code>Seconds_Behind_Source</code> (or <code>Seconds_Behind_Master</code>) across three checks and make sure that lag drops.</p>
+<p>Monitor <code>Seconds_Behind_Source</code> (or <code>Seconds_Behind_Master</code>) across three
+   checks and make sure that lag drops.</p>
 </li>
 <li>
-<p>Run <code>mysqltuner.pl --verbose</code> and make sure that no GTID gap or thread alert remains.</p>
+<p>Run <code>mysqltuner.pl --verbose</code> and make sure that no GTID gap or thread alert
+   remains.</p>
 </li>
 </ol>
 <h2 id="rollback">Rollback<a class="headerlink" href="#rollback" title="Permanent link">&para;</a></h2>
-<p>If worker concurrency triggers lock contention or replication errors, revert to the previous thread values:</p>
+<p>If worker concurrency triggers lock contention or replication errors, revert to
+the previous thread values:</p>
 <ol>
 <li>Stop the replica SQL thread safely:</li>
 </ol>
@@ -3940,7 +3958,7 @@ position resets cause permanent data divergence between primary and replica node
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

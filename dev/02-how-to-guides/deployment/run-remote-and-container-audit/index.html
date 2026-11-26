@@ -3534,14 +3534,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3819,24 +3819,29 @@
 
 
 <h1 id="run-remote-and-container-audits">Run Remote and Container Audits<a class="headerlink" href="#run-remote-and-container-audits" title="Permanent link">&para;</a></h1>
-<p>Refer to <a href="../../../03-reference/cli-and-scripts/cli-options/">CLI Options and Environment</a> before you start this
-procedure.</p>
+<p>Refer to
+<a href="../../../03-reference/cli-and-scripts/cli-options/">CLI Options and Environment</a>
+before you start this procedure.</p>
 <h2 id="preconditions">Preconditions<a class="headerlink" href="#preconditions" title="Permanent link">&para;</a></h2>
 <p>Before you start this procedure, make sure that these conditions apply:</p>
 <ol>
-<li>You have database access credentials with read privileges on the target server.</li>
+<li>You have database access credentials with read privileges on the target
+   server.</li>
 <li>Perl 5.6 or a newer version exists on the control host.</li>
 <li>For SSH mode, SSH key access or <code>sshpass</code> exists on the control host.</li>
-<li>For container mode, the <code>docker</code>, <code>podman</code>, or <code>kubectl</code> CLI exists on the control host.</li>
+<li>For container mode, the <code>docker</code>, <code>podman</code>, or <code>kubectl</code> CLI exists on the
+   control host.</li>
 </ol>
 <h2 id="safety-precautions">Safety Precautions<a class="headerlink" href="#safety-precautions" title="Permanent link">&para;</a></h2>
-<p><strong>CAUTION:</strong> Never put passwords in plain CLI arguments on shared hosts. Other users can read command arguments
-from process lists.</p>
-<p><strong>NOTE:</strong> Container mode probes <code>cgroup</code> memory limits and skips host kernel checks.</p>
+<p><strong>CAUTION:</strong> Never put passwords in plain CLI arguments on shared hosts. Other
+users can read command arguments from process lists.</p>
+<p><strong>NOTE:</strong> Container mode probes <code>cgroup</code> memory limits and skips host kernel
+checks.</p>
 <h2 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">&para;</a></h2>
 <h3 id="method-a-audit-via-ssh-transport">Method A: Audit via SSH Transport<a class="headerlink" href="#method-a-audit-via-ssh-transport" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Set database and SSH parameters, then start <code>mysqltuner.pl</code> with <code>--ssh-host</code>:</li>
+<li>Set database and SSH parameters, then start <code>mysqltuner.pl</code> with
+   <code>--ssh-host</code>:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--ssh-host<span class="w"> </span>db01.internal<span class="w"> </span><span class="se">\</span>
@@ -3850,7 +3855,8 @@ from process lists.</p>
 <p>If the target uses an SSH password instead of a key, install <code>sshpass</code> first.</p>
 </li>
 <li>
-<p>Pass <code>--ssh-password</code> only in an isolated automation runner, not on shared terminals.</p>
+<p>Pass <code>--ssh-password</code> only in an isolated automation runner, not on shared
+   terminals.</p>
 </li>
 </ol>
 <h3 id="method-b-audit-via-direct-remote-tcp">Method B: Audit via Direct Remote TCP<a class="headerlink" href="#method-b-audit-via-direct-remote-tcp" title="Permanent link">&para;</a></h3>
@@ -3859,7 +3865,8 @@ from process lists.</p>
 <p>Get the physical RAM and swap totals from the server administrator.</p>
 </li>
 <li>
-<p>Set <code>--forcemem</code> and <code>--forceswap</code> so buffer calculations match the remote server hardware:</p>
+<p>Set <code>--forcemem</code> and <code>--forceswap</code> so buffer calculations match the remote
+   server hardware:</p>
 </li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">MYSQL_PWD_USER</span><span class="o">=</span><span class="s2">"mysqltuner"</span>
@@ -3874,12 +3881,15 @@ from process lists.</p>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span>--verbose
 </code></pre></div>
 <ol>
-<li>If you audit a managed cloud database without SSH, add <code>--cloud</code> (and <code>--azure</code> on Azure).</li>
+<li>If you audit a managed cloud database without SSH, add <code>--cloud</code> (and
+   <code>--azure</code> on Azure).</li>
 </ol>
-<p><strong>NOTE:</strong> Direct <code>--cloud</code> mode without <code>--ssh-host</code> assumes 1024 MB RAM unless you pass <code>--forcemem</code>.</p>
+<p><strong>NOTE:</strong> Direct <code>--cloud</code> mode without <code>--ssh-host</code> assumes 1024 MB RAM unless
+you pass <code>--forcemem</code>.</p>
 <h3 id="method-c-audit-docker-podman-or-kubernetes-containers">Method C: Audit Docker, Podman, or Kubernetes Containers<a class="headerlink" href="#method-c-audit-docker-podman-or-kubernetes-containers" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Run <code>mysqltuner.pl</code> with <code>--container</code> and the runtime prefix (<code>docker:</code>, <code>podman:</code>, or <code>kubectl:</code>):</li>
+<li>Run <code>mysqltuner.pl</code> with <code>--container</code> and the runtime prefix (<code>docker:</code>,
+   <code>podman:</code>, or <code>kubectl:</code>):</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Docker container</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span>--container<span class="w"> </span>docker:prod_mysql<span class="w"> </span>--defaults-file<span class="w"> </span>~/.my.cnf<span class="w"> </span>--verbose
@@ -3891,15 +3901,18 @@ from process lists.</p>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span>--container<span class="w"> </span>kubectl:mysql-primary-0<span class="w"> </span>--host<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span>--defaults-file<span class="w"> </span>~/.my.cnf<span class="w"> </span>--verbose
 </code></pre></div>
 <ol>
-<li>Examine the <code>cgroup</code> memory limit and container error log summary in the terminal output.</li>
+<li>Examine the <code>cgroup</code> memory limit and container error log summary in the
+   terminal output.</li>
 </ol>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
-<p>Examine the header output and make sure that the target hostname or container name appears.</p>
+<p>Examine the header output and make sure that the target hostname or
+   container name appears.</p>
 </li>
 <li>
-<p>Make sure that the <code>System Linux Recommendations</code> or <code>cgroup</code> memory lines show accurate RAM values.</p>
+<p>Make sure that the <code>System Linux Recommendations</code> or <code>cgroup</code> memory lines
+   show accurate RAM values.</p>
 </li>
 <li>
 <p>Make sure that no SSH or container transport errors appear in the output.</p>
@@ -3912,7 +3925,8 @@ from process lists.</p>
 <p>If a temporary SSH agent or terminal session stays open, close the session.</p>
 </li>
 <li>
-<p>Remove temporary report files or credentials files from <code>/tmp</code> after review:</p>
+<p>Remove temporary report files or credentials files from <code>/tmp</code> after
+   review:</p>
 </li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>rm<span class="w"> </span>-f<span class="w"> </span>/tmp/mysqltuner_report.html<span class="w"> </span>/tmp/result_mysqltuner.txt
@@ -4017,7 +4031,7 @@ from process lists.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

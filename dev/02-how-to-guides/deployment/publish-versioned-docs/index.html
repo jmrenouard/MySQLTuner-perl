@@ -821,10 +821,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-validate-structure-ste-compliance-and-strict-build" class="md-nav__link">
+  <a href="#step-2-validate-structure-style-and-strict-build" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Validate Structure, STE Compliance, and Strict Build
+        Step 2: Validate Structure, Style, and Strict Build
       
     </span>
   </a>
@@ -3573,14 +3573,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3773,10 +3773,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-validate-structure-ste-compliance-and-strict-build" class="md-nav__link">
+  <a href="#step-2-validate-structure-style-and-strict-build" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Validate Structure, STE Compliance, and Strict Build
+        Step 2: Validate Structure, Style, and Strict Build
       
     </span>
   </a>
@@ -3897,19 +3897,23 @@
 
 
 <h1 id="publish-versioned-documentation">Publish Versioned Documentation<a class="headerlink" href="#publish-versioned-documentation" title="Permanent link">&para;</a></h1>
-<p>Refer to <a href="../../../03-reference/releases/">Release Notes Archive</a> for current release versions before you
-start this procedure.</p>
+<p>Refer to <a href="../../../03-reference/releases/">Release Notes Archive</a> for
+current release versions before you start this procedure.</p>
 <h2 id="preconditions">Preconditions<a class="headerlink" href="#preconditions" title="Permanent link">&para;</a></h2>
 <p>Before you start this procedure, make sure that these conditions apply:</p>
 <ol>
 <li>Python 3.8 or a newer version and Git exist on your workstation.</li>
-<li>You have <code>markdownlint-cli2</code> on your workstation if you execute local lint checks.</li>
-<li>For manual GitHub Actions deployment, you have repository write access and IONOS SFTP secrets.</li>
+<li>You have <code>markdownlint-cli2</code> on your workstation if you execute local lint
+   checks.</li>
+<li>For manual GitHub Actions deployment, you have repository write access and
+   IONOS SFTP secrets.</li>
 </ol>
 <h2 id="safety-precautions">Safety Precautions<a class="headerlink" href="#safety-precautions" title="Permanent link">&para;</a></h2>
-<p><strong>CAUTION:</strong> Run <code>make docs-check</code> and <code>mkdocs build --strict</code> before you publish a version. Broken relative links
-or incorrect <code>mike</code> aliases break documentation navigation.</p>
-<p><strong>NOTE:</strong> The <code>mkdocs.yml</code> file sets <code>mike</code> to <code>alias_type: redirect</code> for a static Apache web server.</p>
+<p><strong>CAUTION:</strong> Run <code>make docs-check</code> and <code>mkdocs build --strict</code> before you
+publish a version. Broken relative links or incorrect <code>mike</code> aliases break
+documentation navigation.</p>
+<p><strong>NOTE:</strong> The <code>mkdocs.yml</code> file sets <code>mike</code> to <code>alias_type: redirect</code> for a
+static Apache web server.</p>
 <h2 id="procedure">Procedure<a class="headerlink" href="#procedure" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-install-documentation-dependencies">Step 1: Install Documentation Dependencies<a class="headerlink" href="#step-1-install-documentation-dependencies" title="Permanent link">&para;</a></h3>
 <ol>
@@ -3917,9 +3921,9 @@ or incorrect <code>mike</code> aliases break documentation navigation.</p>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>make<span class="w"> </span>docs-install
 </code></pre></div>
-<h3 id="step-2-validate-structure-ste-compliance-and-strict-build">Step 2: Validate Structure, STE Compliance, and Strict Build<a class="headerlink" href="#step-2-validate-structure-ste-compliance-and-strict-build" title="Permanent link">&para;</a></h3>
+<h3 id="step-2-validate-structure-style-and-strict-build">Step 2: Validate Structure, Style, and Strict Build<a class="headerlink" href="#step-2-validate-structure-style-and-strict-build" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Run the Diataxis structure and link check in strict mode:</li>
+<li>Run the documentation structure and link check in strict mode:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>make<span class="w"> </span>docs-check
 </code></pre></div>
@@ -3929,7 +3933,8 @@ or incorrect <code>mike</code> aliases break documentation navigation.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>npx<span class="w"> </span>markdownlint-cli2<span class="w"> </span><span class="s2">"docs/**/*.md"</span>
 </code></pre></div>
 <ol>
-<li>Run the strict MkDocs build to validate hooks, release injection, and navigation:</li>
+<li>Run the strict MkDocs build to validate hooks, release injection, and
+   navigation:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>make<span class="w"> </span>docs-build
 </code></pre></div>
@@ -3949,15 +3954,18 @@ or incorrect <code>mike</code> aliases break documentation navigation.</p>
 <p>Open the GitHub Actions tab and select <code>.github/workflows/docs-deploy.yml</code>.</p>
 </li>
 <li>
-<p>Start <code>workflow_dispatch</code> with target <code>version</code> (for example <code>2.9.4</code>), <code>alias</code> (<code>latest</code>), and <code>set_default</code>.</p>
+<p>Start <code>workflow_dispatch</code> with target <code>version</code> (for example <code>2.9.4</code>),
+   <code>alias</code> (<code>latest</code>), and <code>set_default</code>.</p>
 </li>
 <li>
-<p>Set <code>dry_run</code> to <code>true</code> for a rehearsal, or set <code>false</code> to push <code>docs-site</code> and upload to IONOS.</p>
+<p>Set <code>dry_run</code> to <code>true</code> for a rehearsal, or set <code>false</code> to push <code>docs-site</code>
+   and upload to IONOS.</p>
 </li>
 </ol>
 <h4 id="option-b-deploy-manually-with-mike">Option B: Deploy Manually with <code>mike</code><a class="headerlink" href="#option-b-deploy-manually-with-mike" title="Permanent link">&para;</a></h4>
 <ol>
-<li>Fetch the <code>docs-site</code> branch from <code>origin</code> and build the new versioned directory:</li>
+<li>Fetch the <code>docs-site</code> branch from <code>origin</code> and build the new versioned
+   directory:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>git<span class="w"> </span>fetch<span class="w"> </span>origin<span class="w"> </span>docs-site:docs-site<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>mike<span class="w"> </span>deploy<span class="w"> </span>--branch<span class="w"> </span>docs-site<span class="w"> </span>--update-aliases<span class="w"> </span><span class="m">2</span>.9.4<span class="w"> </span>latest
@@ -3979,36 +3987,41 @@ or incorrect <code>mike</code> aliases break documentation navigation.</p>
 <p>Make sure that <code>make docs-check</code> and <code>make docs-build</code> exit with code <code>0</code>.</p>
 </li>
 <li>
-<p>Examine <code>versions.json</code> on <code>docs-site</code> and make sure that the new version and <code>latest</code> alias exist:</p>
+<p>Examine <code>versions.json</code> on <code>docs-site</code> and make sure that the new version and
+   <code>latest</code> alias exist:</p>
 </li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>git<span class="w"> </span>show<span class="w"> </span>docs-site:versions.json
 </code></pre></div>
 <ol>
-<li>Open the site URL and make sure that the version selector switches between versions cleanly.</li>
+<li>Open the site URL and make sure that the version selector switches between
+   versions cleanly.</li>
 </ol>
 <h2 id="rollback">Rollback<a class="headerlink" href="#rollback" title="Permanent link">&para;</a></h2>
-<p>If an active documentation version contains errors, restore the previous version alias immediately:</p>
+<p>If an active documentation version contains errors, restore the previous version
+alias immediately:</p>
 <ol>
 <li>Delete the broken version directory from the <code>docs-site</code> branch:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mike<span class="w"> </span>delete<span class="w"> </span>--branch<span class="w"> </span>docs-site<span class="w"> </span><span class="m">2</span>.9.4
 </code></pre></div>
 <ol>
-<li>Point the <code>latest</code> alias back to the previous healthy version (for example <code>2.9.3</code>):</li>
+<li>Point the <code>latest</code> alias back to the previous healthy version (for example
+   <code>2.9.3</code>):</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>mike<span class="w"> </span>deploy<span class="w"> </span>--branch<span class="w"> </span>docs-site<span class="w"> </span>--update-aliases<span class="w"> </span><span class="m">2</span>.9.3<span class="w"> </span>latest
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>mike<span class="w"> </span>set-default<span class="w"> </span>--branch<span class="w"> </span>docs-site<span class="w"> </span>latest
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>docs-site
 </code></pre></div>
 <ol>
-<li>Run <code>.github/workflows/docs-deploy.yml</code> again with <code>workflow_dispatch</code> to synchronize the static IONOS host.</li>
+<li>Run <code>.github/workflows/docs-deploy.yml</code> again with <code>workflow_dispatch</code> to
+   synchronize the static IONOS host.</li>
 </ol>
 <h2 id="related-topics">Related Topics<a class="headerlink" href="#related-topics" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Reference: <a href="../../../03-reference/releases/">Release Notes Archive</a></li>
 <li>Explanation:
-  <a href="../../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/">ADR-002 Versioned Diataxis Docs</a></li>
+  <a href="../../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/">ADR-002: Versioned Docs</a></li>
 </ul>
 
 
@@ -4105,7 +4118,7 @@ or incorrect <code>mike</code> aliases break documentation navigation.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

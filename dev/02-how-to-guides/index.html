@@ -3380,14 +3380,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3596,10 +3596,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#related-quadrants" class="md-nav__link">
+  <a href="#related-sections" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Related Quadrants
+        Related Sections
       
     </span>
   </a>
@@ -3632,34 +3632,41 @@
 
 
 <h1 id="how-to-guides">How-To Guides<a class="headerlink" href="#how-to-guides" title="Permanent link">&para;</a></h1>
-<p>These operational guides and on-call runbooks provide step-by-step production procedures written in strict
-ASD-STE100 Issue 9. Use them when you need to execute a specific administrative task or triage an active incident.</p>
+<p>These operational guides and on-call runbooks provide step-by-step
+production procedures. Use them when you need to execute a specific
+administrative task or triage an active incident.</p>
 <h2 id="guides-by-domain">Guides by Domain<a class="headerlink" href="#guides-by-domain" title="Permanent link">&para;</a></h2>
 <h3 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><a href="deployment/run-remote-and-container-audit/">Run Remote and Container Audits</a></strong>: Audit remote MySQL/MariaDB
-  instances over SSH, direct TCP, Docker, Podman, or Kubernetes.</li>
-<li><strong><a href="deployment/publish-versioned-docs/">Publish Versioned Docs</a></strong>: Validate, build, preview, and publish versioned
-  MkDocs Material and <code>mike</code> documentation.</li>
+<li><strong><a href="deployment/run-remote-and-container-audit/">Run Remote and Container Audits</a></strong>:
+  Audit remote MySQL/MariaDB instances over SSH, direct TCP, Docker, Podman,
+  or Kubernetes.</li>
+<li><strong><a href="deployment/publish-versioned-docs/">Publish Versioned Docs</a></strong>:
+  Validate, build, preview, and publish versioned MkDocs Material and <code>mike</code>
+  documentation.</li>
 </ul>
 <h3 id="operations">Operations<a class="headerlink" href="#operations" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><a href="operations/tune-innodb-buffer-pool/">Tune InnoDB Buffer Pool</a></strong>: Measure hit ratios, adjust
-  <code>innodb_buffer_pool_size</code> safely, verify stability, and revert on regression.</li>
-<li><strong><a href="operations/run-offline-verification/">Run Offline Verification</a></strong>: Compile <code>mysqltuner.pl</code>, inspect offline
-  indicators, run unit tests, and validate Diátaxis documentation.</li>
+<li><strong><a href="operations/tune-innodb-buffer-pool/">Tune InnoDB Buffer Pool</a></strong>:
+  Measure hit ratios, adjust <code>innodb_buffer_pool_size</code> safely, verify
+  stability, and revert on regression.</li>
+<li><strong><a href="operations/run-offline-verification/">Run Offline Verification</a></strong>:
+  Compile <code>mysqltuner.pl</code>, inspect offline indicators, run unit tests, and
+  validate the documentation structure.</li>
 </ul>
 <h3 id="incident-response">Incident Response<a class="headerlink" href="#incident-response" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><a href="incident-response/diagnose-replication-lag/">Diagnose Replication Lag</a></strong>: On-call triage runbook for stopped
-  IO/SQL threads, GTID gaps, and parallel worker saturation.</li>
+<li><strong><a href="incident-response/diagnose-replication-lag/">Diagnose Replication Lag</a></strong>:
+  On-call triage runbook for stopped IO/SQL threads, GTID gaps, and parallel
+  worker saturation.</li>
 </ul>
 <h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><a href="security/audit-tls-and-auth-plugins/">Audit TLS and Auth Plugins</a></strong>: Verify transport encryption, cipher
-  suites, certificate expiration, and authentication plugin safety.</li>
+<li><strong><a href="security/audit-tls-and-auth-plugins/">Audit TLS and Auth Plugins</a></strong>:
+  Verify transport encryption, cipher suites, certificate expiration, and
+  authentication plugin safety.</li>
 </ul>
-<h2 id="related-quadrants">Related Quadrants<a class="headerlink" href="#related-quadrants" title="Permanent link">&para;</a></h2>
+<h2 id="related-sections">Related Sections<a class="headerlink" href="#related-sections" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>First-Time Sandbox Labs:</strong> <a href="../01-tutorials/">Tutorials</a></li>
 <li><strong>CLI Flags &amp; Alert Matrices:</strong> <a href="../03-reference/">Reference</a></li>
@@ -3760,7 +3767,7 @@ ASD-STE100 Issue 9. Use them when you need to execute a specific administrative 
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>

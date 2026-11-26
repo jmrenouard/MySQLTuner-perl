@@ -3514,14 +3514,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3794,16 +3794,19 @@
 
 <h1 id="tutorial-ai-agent-mcp-sandbox-lab">Tutorial: AI Agent &amp; MCP Sandbox Lab<a class="headerlink" href="#tutorial-ai-agent-mcp-sandbox-lab" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Learning Goal:</strong> Produce machine-readable <code>--agent-json</code> remediation plans, export the offline indicator catalog,
-and interact with the MySQLTuner Model Context Protocol (MCP) server in an isolated local Docker sandbox.</p>
-<p><strong>Environment Warning:</strong> Keep <code>READ_ONLY=true</code> during learning sessions and run all commands only against a
-disposable local Docker container. Never connect AI write tools to production servers during a tutorial.</p>
+<p><strong>Learning Goal:</strong> Produce machine-readable <code>--agent-json</code> remediation plans,
+export the offline indicator catalog, and interact with the MySQLTuner Model
+Context Protocol (MCP) server in an isolated local Docker sandbox.</p>
+<p><strong>Environment Warning:</strong> Keep <code>READ_ONLY=true</code> during learning sessions and
+run all commands only against a disposable local Docker container. Never
+connect AI write tools to production servers during a tutorial.</p>
 </blockquote>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>Ensure your local environment includes:</p>
 <ul>
 <li>Docker Engine 24+</li>
-<li>Python 3.8+ (standard library only; zero external pip packages required for <code>build/mcp_server.py</code>)</li>
+<li>Python 3.8+ (standard library only; zero external pip packages required for
+  <code>build/mcp_server.py</code>)</li>
 <li>Perl 5.6+ with <code>JSON::PP</code> (included in Perl core since 5.14)</li>
 <li>Local repository checkout of <code>MySQLTuner-perl</code></li>
 <li>Local TCP port <code>13306</code> available</li>
@@ -3812,9 +3815,11 @@ disposable local Docker container. Never connect AI write tools to production se
 <p>By the end of this lab, you will have:</p>
 <ol>
 <li>Inspected MySQLTuner's offline indicator catalog with <code>--list-indicators</code>.</li>
-<li>Launched a temporary MariaDB 11.4 container and extracted actionable fixes via <code>--agent-json</code>.</li>
+<li>Launched a temporary MariaDB 11.4 container and extracted actionable fixes
+   via <code>--agent-json</code>.</li>
 <li>Built the containerized MCP server image from <code>Dockerfile.mcp</code>.</li>
-<li>Sent JSON-RPC 2.0 <code>initialize</code>, <code>tools/list</code>, and <code>tools/call</code> requests to <code>build/mcp_server.py</code> over stdio.</li>
+<li>Sent JSON-RPC 2.0 <code>initialize</code>, <code>tools/list</code>, and <code>tools/call</code> requests to
+   <code>build/mcp_server.py</code> over stdio.</li>
 </ol>
 <h2 id="lab-execution-flow">Lab Execution Flow<a class="headerlink" href="#lab-execution-flow" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>flowchart LR
@@ -3824,7 +3829,8 @@ disposable local Docker container. Never connect AI write tools to production se
     Img --&gt; RPC["5. Query mcp_server.py stdio"]
     RPC --&gt; Clean["6. Clean Up Sandbox"]</code></pre>
 <h2 id="step-1-export-the-offline-indicator-catalog">Step 1: Export the Offline Indicator Catalog<a class="headerlink" href="#step-1-export-the-offline-indicator-catalog" title="Permanent link">&para;</a></h2>
-<p>Before starting a database, test offline indicator discovery. This flag needs no database connection:</p>
+<p>Before starting a database, test offline indicator discovery. This flag needs
+no database connection:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span>--list-indicators<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">25</span>
 </code></pre></div>
 <p>Expected output:</p>
@@ -3846,7 +3852,8 @@ disposable local Docker container. Never connect AI write tools to production se
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-p<span class="w"> </span><span class="m">13306</span>:3306<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>mariadb:11.4
 </code></pre></div>
-<p>Wait until the server accepts queries, then run <code>mysqltuner.pl</code> with <code>--agent-json</code>:</p>
+<p>Wait until the server accepts queries, then run <code>mysqltuner.pl</code> with
+<code>--agent-json</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--agent-json<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--host<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span><span class="se">\</span>
@@ -3874,10 +3881,12 @@ disposable local Docker container. Never connect AI write tools to production se
 <a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="p">]</span>
 <a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="p">}</span>
 </code></pre></div>
-<p>Every finding includes <code>impact_score</code>, <code>risk_level</code>, <code>requires_restart</code>, and a matching <code>rollback_statement</code> so AI
-agents can evaluate safety before proposing any change.</p>
+<p>Every finding includes <code>impact_score</code>, <code>risk_level</code>, <code>requires_restart</code>, and a
+matching <code>rollback_statement</code> so AI agents can evaluate safety before proposing
+any change.</p>
 <h2 id="step-3-build-the-dockerfilemcp-microservice-image">Step 3: Build the <code>Dockerfile.mcp</code> Microservice Image<a class="headerlink" href="#step-3-build-the-dockerfilemcp-microservice-image" title="Permanent link">&para;</a></h2>
-<p>Inspect <code>Dockerfile.mcp</code> and build a local <code>mysqltuner-mcp</code> image from the repository root:</p>
+<p>Inspect <code>Dockerfile.mcp</code> and build a local <code>mysqltuner-mcp</code> image from the
+repository root:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-f<span class="w"> </span>Dockerfile.mcp<span class="w"> </span>-t<span class="w"> </span>mysqltuner-mcp<span class="w"> </span>.
 </code></pre></div>
 <p>Expected output (final lines):</p>
@@ -3885,8 +3894,8 @@ agents can evaluate safety before proposing any change.</p>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>=&gt; =&gt; naming to docker.io/library/mysqltuner-mcp:latest
 </code></pre></div>
 <h2 id="step-4-query-buildmcp_serverpy-over-json-rpc-stdio">Step 4: Query <code>build/mcp_server.py</code> Over JSON-RPC Stdio<a class="headerlink" href="#step-4-query-buildmcp_serverpy-over-json-rpc-stdio" title="Permanent link">&para;</a></h2>
-<p>Run <code>build/mcp_server.py</code> locally in safe <code>READ_ONLY=true</code> mode against your sandbox database and send three JSON-RPC
-requests over standard input:</p>
+<p>Run <code>build/mcp_server.py</code> locally in safe <code>READ_ONLY=true</code> mode against your
+sandbox database and send three JSON-RPC requests over standard input:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/mt-mcp-cache
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">printf</span><span class="w"> </span><span class="s1">'%s\n%s\n%s\n'</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="s1">'{"jsonrpc":"2.0","method":"initialize","id":1}'</span><span class="w"> </span><span class="se">\</span>
@@ -3901,9 +3910,10 @@ requests over standard input:</p>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="p">{</span><span class="nt">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w"> </span><span class="nt">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"tools"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"get_latest_audit"</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"run_audit"</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analyze_buffer_pool"</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"diagnose_replication_lag"</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"detect_fragmented_tables"</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"apply_recommendation"</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"rollback_recommendation"</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">}]},</span><span class="w"> </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">}</span>
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="p">{</span><span class="nt">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w"> </span><span class="nt">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"content"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{\n  \"status\": \"OPTIMAL\",\n  \"metrics\": {\n    \"hit_ratio_pct\": 100.0,\n..."</span><span class="p">}]}]},</span><span class="w"> </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">}</span>
 </code></pre></div>
-<p>With <code>READ_ONLY=true</code>, diagnostic tools (<code>run_audit</code>, <code>get_latest_audit</code>, <code>analyze_buffer_pool</code>,
-<code>diagnose_replication_lag</code>, <code>detect_fragmented_tables</code>) succeed while write tools (<code>apply_recommendation</code>,
-<code>rollback_recommendation</code>) safely refuse execution.</p>
+<p>With <code>READ_ONLY=true</code>, diagnostic tools (<code>run_audit</code>, <code>get_latest_audit</code>,
+<code>analyze_buffer_pool</code>, <code>diagnose_replication_lag</code>, <code>detect_fragmented_tables</code>)
+succeed while write tools (<code>apply_recommendation</code>, <code>rollback_recommendation</code>)
+safely refuse execution.</p>
 <h2 id="step-5-clean-up-the-sandbox">Step 5: Clean Up the Sandbox<a class="headerlink" href="#step-5-clean-up-the-sandbox" title="Permanent link">&para;</a></h2>
 <p>Remove the temporary container and MCP cache directory:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>docker<span class="w"> </span>rm<span class="w"> </span>-f<span class="w"> </span>mt-mcp-sandbox
@@ -3911,11 +3921,14 @@ requests over standard input:</p>
 </code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Apply safe operational procedures in <a href="../../02-how-to-guides/">How-To Guides</a></li>
-<li>Review every MCP tool, resource URI, and <code>--agent-json</code> field in <a href="../../03-reference/">Reference</a>
-  and <a href="../../03-reference/cli-and-scripts/mcp-server-api/">MCP Server &amp; Agent JSON API</a></li>
-<li>Explore how <code>.agent/skills/</code> and <code>build/mcp_server.py</code> interact in <a href="../../04-explanation/">Explanation</a>
-  and <a href="../../04-explanation/architecture-overview/ai-agent-architecture/">AI Agent Architecture</a></li>
+<li>Apply safe operational procedures in
+  <a href="../../02-how-to-guides/">How-To Guides</a></li>
+<li>Review every MCP tool, resource URI, and <code>--agent-json</code> field in
+  <a href="../../03-reference/">Reference</a> and
+  <a href="../../03-reference/cli-and-scripts/mcp-server-api/">MCP Server &amp; Agent JSON API</a></li>
+<li>Explore how <code>.agent/skills/</code> and <code>build/mcp_server.py</code> interact in
+  <a href="../../04-explanation/">Explanation</a> and
+  <a href="../../04-explanation/architecture-overview/ai-agent-architecture/">AI Agent Architecture</a></li>
 </ul>
 
 
@@ -4012,7 +4025,7 @@ requests over standard input:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

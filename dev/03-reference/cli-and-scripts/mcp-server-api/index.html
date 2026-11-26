@@ -3549,14 +3549,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3846,7 +3846,8 @@
 
 
 <h1 id="mcp-server-and-agent-json-api">MCP Server and Agent JSON API<a class="headerlink" href="#mcp-server-and-agent-json-api" title="Permanent link">&para;</a></h1>
-<p>Protocol, tool schemas, resource URIs, safety guardrails, and <code>--agent-json</code> output contract for AI integrations.</p>
+<p>Protocol, tool schemas, resource URIs, safety guardrails, and <code>--agent-json</code>
+output contract for AI integrations.</p>
 <h2 id="mcp-server-specification-buildmcp_serverpy">MCP Server Specification (<code>build/mcp_server.py</code>)<a class="headerlink" href="#mcp-server-specification-buildmcp_serverpy" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -4023,16 +4024,20 @@
 </table>
 <h3 id="sql-sanitizer-rules-sanitize_sql_statement">SQL Sanitizer Rules (<code>sanitize_sql_statement</code>)<a class="headerlink" href="#sql-sanitizer-rules-sanitize_sql_statement" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Strips <code>--</code>, <code>#</code>, and <code>/* ... */</code> comments; rejects unclosed <code>/*</code> comments and multiple statements (<code>;</code>).</li>
-<li>Rejects destructive SQL keywords: <code>DROP</code>, <code>DELETE</code>, <code>TRUNCATE</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>GRANT</code>, <code>REVOKE</code>, <code>CREATE</code>,
-  <code>REPLACE</code>, <code>EXECUTE</code>, <code>CALL</code>, <code>LOAD_FILE</code>, <code>LOAD DATA</code>, <code>INTO OUTFILE</code>, <code>INTO DUMPFILE</code>, <code>SHUTDOWN</code>, <code>KILL</code>, and
-  <code>FLUSH PRIVILEGES</code>.</li>
-<li>Requires statement to start with one of: <code>SET GLOBAL</code>, <code>SET @@GLOBAL.</code>, <code>SET PERSIST</code>, <code>ALTER TABLE</code>,
-  <code>OPTIMIZE TABLE</code>, or <code>ANALYZE TABLE</code> (followed by whitespace for non-dot prefixes).</li>
+<li>Strips <code>--</code>, <code>#</code>, and <code>/* ... */</code> comments; rejects unclosed <code>/*</code> comments and
+  multiple statements (<code>;</code>).</li>
+<li>Rejects destructive keywords: <code>DROP</code>, <code>DELETE</code>, <code>TRUNCATE</code>, <code>INSERT</code>,
+  <code>UPDATE</code>, <code>GRANT</code>, <code>REVOKE</code>, <code>CREATE</code>, <code>REPLACE</code>, <code>EXECUTE</code>, <code>CALL</code>.</li>
+<li>Also rejects <code>LOAD_FILE</code>, <code>LOAD DATA</code>, <code>INTO OUTFILE</code>, <code>INTO DUMPFILE</code>,
+  <code>SHUTDOWN</code>, <code>KILL</code>, and <code>FLUSH PRIVILEGES</code>.</li>
+<li>Requires statements to start with <code>SET GLOBAL</code>, <code>SET @@GLOBAL.</code>,
+  <code>SET PERSIST</code>, <code>ALTER TABLE</code>, <code>OPTIMIZE TABLE</code>, or <code>ANALYZE TABLE</code> (with
+  whitespace after non-dot prefixes).</li>
 </ul>
 <h2 id="-agent-json-output-contract-mysqltunerpl"><code>--agent-json</code> Output Contract (<code>mysqltuner.pl</code>)<a class="headerlink" href="#-agent-json-output-contract-mysqltunerpl" title="Permanent link">&para;</a></h2>
-<p>Executing <code>perl mysqltuner.pl --agent-json</code> emits a single JSON object <code>{ "findings": [...] }</code> generated from <code>@adjvars</code>
-while excluding dot-delimited sysctl or Galera keys.</p>
+<p>Executing <code>perl mysqltuner.pl --agent-json</code> emits a single JSON object
+<code>{ "findings": [...] }</code> generated from <code>@adjvars</code> while excluding dot-delimited
+sysctl or Galera keys.</p>
 <h3 id="finding-object-schema">Finding Object Schema<a class="headerlink" href="#finding-object-schema" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4228,7 +4233,8 @@ while excluding dot-delimited sysctl or Galera keys.</p>
 <ul>
 <li>AI agent subsystem design:
   <a href="../../../04-explanation/architecture-overview/ai-agent-architecture/">AI Agent Architecture</a></li>
-<li>Guided MCP sandbox lab: <a href="../../../01-tutorials/02-ai-mcp-sandbox-lab/">AI and MCP Sandbox Lab</a></li>
+<li>Guided MCP sandbox lab:
+  <a href="../../../01-tutorials/02-ai-mcp-sandbox-lab/">AI and MCP Sandbox Lab</a></li>
 </ul>
 
 
@@ -4325,7 +4331,7 @@ while excluding dot-delimited sysctl or Galera keys.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

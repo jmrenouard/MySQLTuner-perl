@@ -3515,14 +3515,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3778,11 +3778,11 @@
 
 
 <h1 id="capabilities-and-diagnostic-indicators">Capabilities and Diagnostic Indicators<a class="headerlink" href="#capabilities-and-diagnostic-indicators" title="Permanent link">&para;</a></h1>
-<p>Technical specification of the indicator catalog, Weighted Health Score model, and storage engine coverage in
-<code>mysqltuner.pl</code>.</p>
+<p>Technical specification of the indicator catalog, Weighted Health Score model,
+and storage engine coverage in <code>mysqltuner.pl</code>.</p>
 <h2 id="indicator-catalog-summary-list-indicators">Indicator Catalog Summary (<code>--list-indicators</code>)<a class="headerlink" href="#indicator-catalog-summary-list-indicators" title="Permanent link">&para;</a></h2>
-<p>Executing <code>perl mysqltuner.pl --list-indicators</code> exports the static catalog in offline JSON without connecting to a
-database (<code>version</code>: <code>2.9.4</code>).</p>
+<p>Executing <code>perl mysqltuner.pl --list-indicators</code> exports the static catalog in
+offline JSON without connecting to a database (<code>version</code>: <code>2.9.4</code>).</p>
 <table>
 <thead>
 <tr>
@@ -3831,11 +3831,12 @@ database (<code>version</code>: <code>2.9.4</code>).</p>
 </tr>
 </tbody>
 </table>
-<p>All indicators map to nine functional categories: <code>General</code>, <code>System</code>, <code>Storage</code>, <code>Modeling</code>, <code>Performance</code>,
-<code>Security</code>, <code>HA</code>, <code>Capacity</code>, and <code>Automation</code>.</p>
+<p>All indicators map to nine functional categories: <code>General</code>, <code>System</code>,
+<code>Storage</code>, <code>Modeling</code>, <code>Performance</code>, <code>Security</code>, <code>HA</code>, <code>Capacity</code>, and
+<code>Automation</code>.</p>
 <h2 id="weighted-health-score-40-30-30-model">Weighted Health Score (<code>40 / 30 / 30</code> Model)<a class="headerlink" href="#weighted-health-score-40-30-30-model" title="Permanent link">&para;</a></h2>
-<p><code>calculate_health_score()</code> computes <code>HealthScore</code> / <code>WeightedHealthScore</code> on a <code>0</code> to <code>100</code> scale from three weighted
-pillars (<code>HealthScoreDetails</code>).</p>
+<p><code>calculate_health_score()</code> computes <code>HealthScore</code> / <code>WeightedHealthScore</code> on a
+<code>0</code> to <code>100</code> scale from three weighted pillars (<code>HealthScoreDetails</code>).</p>
 <table>
 <thead>
 <tr>
@@ -4016,6 +4017,7 @@ pillars (<code>HealthScoreDetails</code>).</p>
 </tbody>
 </table>
 <h2 id="feature-subroutines-catalog">Feature Subroutines Catalog<a class="headerlink" href="#feature-subroutines-catalog" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/major/MySQLTuner-perl/blob/master/FEATURES.md">FEATURES.md</a></p>
 <h2 id="features-list-for-option-feature-dev-only">Features list for option: --feature (dev only)<a class="headerlink" href="#features-list-for-option-feature-dev-only" title="Permanent link">&para;</a></h2>
 <ul>
 <li>audit_deprecated_variables</li>
@@ -4060,7 +4062,8 @@ pillars (<code>HealthScoreDetails</code>).</p>
 </ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Threshold details and data files: <a href="../../configuration/thresholds-and-files/">Thresholds and Data Files</a></li>
+<li>Threshold details and data files:
+  <a href="../../configuration/thresholds-and-files/">Thresholds and Data Files</a></li>
 <li>Deep dive on Health Score scoring:
   <a href="../../../04-explanation/deep-dives/health-score-and-version-rift/">Health Score and Version Rift</a></li>
 </ul>
@@ -4159,7 +4162,7 @@ pillars (<code>HealthScoreDetails</code>).</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

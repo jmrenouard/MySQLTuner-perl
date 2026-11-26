@@ -3489,14 +3489,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3738,8 +3738,9 @@
 
 
 <h1 id="diagnostic-execution-pipeline-and-transport-abstraction">Diagnostic Execution Pipeline and Transport Abstraction<a class="headerlink" href="#diagnostic-execution-pipeline-and-transport-abstraction" title="Permanent link">&para;</a></h1>
-<p>Analytical overview of how <code>mysqltuner.pl</code> initializes transports, collects SQL and OS telemetry, computes metrics, and
-serializes diagnostic outputs within a single-pass Perl lifecycle.</p>
+<p>Analytical overview of how <code>mysqltuner.pl</code> initializes transports, collects SQL
+and OS telemetry, computes metrics, and serializes diagnostic outputs within a
+single-pass Perl lifecycle.</p>
 <h2 id="execution-lifecycle-architecture">Execution Lifecycle Architecture<a class="headerlink" href="#execution-lifecycle-architecture" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>flowchart TD
     Start["CLI Entry (!caller)"] --&gt; Parse["parse_cli_args (%CLI_METADATA)"]
@@ -3758,46 +3759,60 @@ serializes diagnostic outputs within a single-pass Perl lifecycle.</p>
     DumpCSV --&gt; Recs["make_recommendations (Console &amp; Health KPI)"]
     Recs --&gt; Output["dump_result (--reportfile, --json, --yaml, --agent-json)"]</code></pre>
 <h2 id="cli-initialization-and-early-exits">CLI Initialization and Early Exits<a class="headerlink" href="#cli-initialization-and-early-exits" title="Permanent link">&para;</a></h2>
-<p><code>mysqltuner.pl</code> drives argument parsing from a declarative <code>%CLI_METADATA</code> registry using <code>Getopt::Long</code> configured with
-<code>no_auto_abbrev</code> and <code>no_ignore_case</code>. Strict boundary checks reject unrecognized flags and positional arguments before
-any network or filesystem call occurs.</p>
-<p><code>setup_environment()</code> resolves human-readable sizing flags (<code>--forcemem</code>, <code>--forceswap</code>) via <code>parse_human_size_to_mb()</code>,
-locates <code>basic_passwords.txt</code> and <code>vulnerabilities.csv</code>, and handles offline exits (<code>--help</code> and
+<p><code>mysqltuner.pl</code> drives argument parsing from a declarative <code>%CLI_METADATA</code>
+registry using <code>Getopt::Long</code> configured with <code>no_auto_abbrev</code> and
+<code>no_ignore_case</code>. Strict boundary checks reject unrecognized flags and
+positional arguments before any network or filesystem call occurs.</p>
+<p><code>setup_environment()</code> resolves human-readable sizing flags (<code>--forcemem</code>,
+<code>--forceswap</code>) via <code>parse_human_size_to_mb()</code>, locates <code>basic_passwords.txt</code> and
+<code>vulnerabilities.csv</code>, and handles offline exits (<code>--help</code> and
 <code>--list-indicators</code>).</p>
 <h2 id="credential-resolution-and-fail-fast-semantics">Credential Resolution and Fail-Fast Semantics<a class="headerlink" href="#credential-resolution-and-fail-fast-semantics" title="Permanent link">&para;</a></h2>
-<p><code>mysql_setup()</code> resolves database connectivity before running OS telemetry so unreachable servers terminate cleanly:</p>
+<p><code>mysql_setup()</code> resolves database connectivity before running OS telemetry so
+unreachable servers terminate cleanly:</p>
 <ul>
-<li><strong>Explicit Credentials</strong>: <code>--user</code>, <code>--pass</code>, <code>--login-path</code>, or <code>--container</code> attempts immediate authentication. When
-  explicit <code>--pass</code> or <code>--login-path</code> credentials fail, <code>report_login_failure()</code> prints the client error (<code>ERROR 2026</code>
-  TLS hint or <code>ERROR 2002-2005</code> network hint) and exits <code>1</code> without falling back to unrelated credential stores.</li>
-<li><strong>Platform Discovery</strong>: On local hosts (<code>$doremote == 0</code>), <code>mysql_setup()</code> checks Solaris <code>svcprop</code>, Plesk
-  <code>.psa.shadow</code>, DirectAdmin <code>mysql.conf</code>, Debian <code>/etc/mysql/debian.cnf</code>, and <code>--defaults-file</code> before attempting
-  <code>~/.my.cnf</code> / <code>~/.mylogin.cnf</code> or interactive <code>STDIN</code> prompting (disabled by <code>--noask</code>).</li>
+<li><strong>Explicit Credentials</strong>: <code>--user</code>, <code>--pass</code>, <code>--login-path</code>, or <code>--container</code>
+  attempts immediate authentication.</li>
+<li><strong>Login Failure Handling</strong>: When explicit <code>--pass</code> or <code>--login-path</code> fails,
+  <code>report_login_failure()</code> prints the client error (<code>ERROR 2026</code> or
+  <code>ERROR 2002-2005</code> hint) and exits <code>1</code> without unrelated credential fallbacks.</li>
+<li><strong>Platform Discovery</strong>: On local hosts (<code>$doremote == 0</code>), <code>mysql_setup()</code>
+  checks Solaris <code>svcprop</code>, Plesk <code>.psa.shadow</code>, DirectAdmin <code>mysql.conf</code>, and
+  Debian <code>/etc/mysql/debian.cnf</code>.</li>
+<li><strong>Client Config Fallback</strong>: Next, it checks <code>--defaults-file</code>, <code>~/.my.cnf</code>,
+  <code>~/.mylogin.cnf</code>, or interactive <code>STDIN</code> prompting (disabled by <code>--noask</code>).</li>
 </ul>
 <h2 id="transport-abstraction-execute_system_command">Transport Abstraction (<code>execute_system_command</code>)<a class="headerlink" href="#transport-abstraction-execute_system_command" title="Permanent link">&para;</a></h2>
-<p>OS-level discovery routes through <code>execute_system_command()</code>, which consults <code>get_transport_prefix()</code>
-(<code>get_ssh_prefix()</code> first, then <code>get_container_prefix()</code>):</p>
+<p>OS-level discovery routes through <code>execute_system_command()</code>, which consults
+<code>get_transport_prefix()</code> (<code>get_ssh_prefix()</code> first, then
+<code>get_container_prefix()</code>):</p>
 <ul>
-<li><strong>Shell Isolation</strong>: Remote commands are wrapped in single-quoted remote shells with embedded single quotes escaped
-  (<code>[REQ-INFRA-02]</code>), while SQL statements passed through <code>select_array()</code> and <code>select_one()</code> escape double quotes,
-  backticks, and dollar signs (<code>[REQ-INFRA-01]</code>).</li>
-<li><strong>Environment Awareness</strong>: In container mode (<code>is_docker()</code> or <code>--container</code>), <code>os_setup()</code> reads cgroup v1/v2 memory
-  ceilings (<code>detect_cgroup_memory_limits()</code>) and <code>system_recommendations()</code> suppresses host kernel, process, and network
-  probes that reflect the underlying container host rather than the database allocation.</li>
-<li><strong>Windows Telemetry</strong>: On <code>$^O eq 'MSWin32'</code>, <code>os_setup()</code> and <code>check_architecture()</code> invoke PowerShell
-  <code>Get-CimInstance</code> first and fall back to legacy <code>wmic</code> only when CIM output is missing or non-numeric.</li>
+<li><strong>Shell Isolation</strong>: Remote commands use single-quoted remote shells with
+  escaped single quotes (<code>[REQ-INFRA-02]</code>). SQL queries in <code>select_array()</code> and
+  <code>select_one()</code> escape double quotes, backticks, and dollar signs.</li>
+<li><strong>Container Cgroups</strong>: In container mode (<code>is_docker()</code> or <code>--container</code>),
+  <code>os_setup()</code> reads cgroup v1/v2 memory ceilings via
+  <code>detect_cgroup_memory_limits()</code>.</li>
+<li><strong>Container Probe Guard</strong>: <code>system_recommendations()</code> suppresses host kernel,
+  process, and network probes that reflect the container host instead of the DB.</li>
+<li><strong>Windows Telemetry</strong>: On <code>$^O eq 'MSWin32'</code>, <code>os_setup()</code> and
+  <code>check_architecture()</code> invoke PowerShell <code>Get-CimInstance</code> first and fall back
+  to legacy <code>wmic</code> only when CIM output is missing or non-numeric.</li>
 </ul>
 <h2 id="metric-computation-diagnostics-and-serialization">Metric Computation, Diagnostics, and Serialization<a class="headerlink" href="#metric-computation-diagnostics-and-serialization" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Snapshot Acquisition</strong>: <code>get_all_vars()</code> executes <code>SELECT VERSION()</code> (with 3 connection retries), loads
-  <code>SHOW GLOBAL VARIABLES</code> and <code>SHOW GLOBAL STATUS</code> into <code>%myvar</code> and <code>%mystat</code>, checks user privileges, and adjusts
-  <code>Aborted_connects</code> using the symlink-protected state file from <code>adjust_aborted_connects()</code>.</li>
-<li><strong>Derived Calculations</strong>: <code>calculations()</code> verifies <code>Questions &gt;= 1</code> (exiting <code>2</code> on idle servers), delegates pure
-  buffer/memory/traffic/cache math to helper subroutines, and computes InnoDB and binlog ratios.</li>
-<li><strong>Sectional Audits</strong>: The main loop executes all 34 subroutines in <code>@REPORT_SECTION_NAMES</code> (or a validated comma list
-  via <code>--feature</code>), feeding <code>@generalrec</code>, <code>@adjvars</code>, <code>@secrec</code>, <code>@sysrec</code>, and <code>@modeling</code>.</li>
-<li><strong>Output Rendering</strong>: <code>dump_result()</code> writes optional standalone HTML (<code>--reportfile</code>), credential-redacted JSON
-  (<code>--json</code> / <code>--prettyjson</code> via Core <code>JSON::PP</code>), YAML (<code>--yaml</code>), or AI remediation JSON (<code>--agent-json</code>).</li>
+<li><strong>Snapshot Acquisition</strong>: <code>get_all_vars()</code> runs <code>SELECT VERSION()</code> (3
+  retries), loads <code>SHOW GLOBAL VARIABLES</code> and <code>SHOW GLOBAL STATUS</code> into <code>%myvar</code>
+  and <code>%mystat</code>, and adjusts <code>Aborted_connects</code> via <code>adjust_aborted_connects()</code>.</li>
+<li><strong>Derived Calculations</strong>: <code>calculations()</code> verifies <code>Questions &gt;= 1</code> (exiting
+  <code>2</code> on idle servers), delegates pure buffer/memory/traffic/cache math to
+  helpers, and computes InnoDB and binlog ratios.</li>
+<li><strong>Sectional Audits</strong>: The main loop executes all 34 subroutines in
+  <code>@REPORT_SECTION_NAMES</code> (or a validated comma list via <code>--feature</code>), feeding
+  <code>@generalrec</code>, <code>@adjvars</code>, <code>@secrec</code>, <code>@sysrec</code>, and <code>@modeling</code>.</li>
+<li><strong>Output Rendering</strong>: <code>dump_result()</code> writes optional standalone HTML
+  (<code>--reportfile</code>), credential-redacted JSON (<code>--json</code> / <code>--prettyjson</code> via Core
+  <code>JSON::PP</code>), YAML (<code>--yaml</code>), or AI remediation JSON (<code>--agent-json</code>).</li>
 </ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
@@ -3901,7 +3916,7 @@ locates <code>basic_passwords.txt</code> and <code>vulnerabilities.csv</code>, a
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

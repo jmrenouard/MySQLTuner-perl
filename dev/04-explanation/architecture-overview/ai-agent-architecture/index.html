@@ -3478,14 +3478,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3716,8 +3716,10 @@
 
 
 <h1 id="ai-agent-and-mcp-subsystem-architecture">AI Agent and MCP Subsystem Architecture<a class="headerlink" href="#ai-agent-and-mcp-subsystem-architecture" title="Permanent link">&para;</a></h1>
-<p>MySQLTuner separates <strong>Domain Intelligence</strong> (<code>.agent/skills/</code>) from <strong>Runtime Execution and Telemetry</strong>
-(<code>build/mcp_server.py</code> and <code>mysqltuner.pl --agent-json</code>) so autonomous agents can audit and tune databases safely.</p>
+<p>MySQLTuner separates <strong>Domain Intelligence</strong> (<code>.agent/skills/</code>) from
+<strong>Runtime Execution and Telemetry</strong> (<code>build/mcp_server.py</code> and
+<code>mysqltuner.pl --agent-json</code>) so autonomous agents can audit and tune databases
+safely.</p>
 <h2 id="system-topology">System Topology<a class="headerlink" href="#system-topology" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>graph TD
     subgraph ClientLayer["AI Client and IDE Layer"]
@@ -3764,8 +3766,8 @@
     PerlCore --&gt; TargetDB
     Ledger --&gt; TargetDB</code></pre>
 <h2 id="domain-intelligence-layer-agentskills">Domain Intelligence Layer (<code>.agent/skills/</code>)<a class="headerlink" href="#domain-intelligence-layer-agentskills" title="Permanent link">&para;</a></h2>
-<p>Nine specialized skill capsules in <code>.agent/skills/</code> provide mathematical formulas, version-divergence guards, and
-operational safety boundaries:</p>
+<p>Nine specialized skill capsules in <code>.agent/skills/</code> provide mathematical
+formulas, version-divergence guards, and operational safety boundaries:</p>
 <table>
 <thead>
 <tr>
@@ -3813,37 +3815,47 @@ operational safety boundaries:</p>
 </tbody>
 </table>
 <h2 id="mcp-server-execution-model-buildmcp_serverpy">MCP Server Execution Model (<code>build/mcp_server.py</code>)<a class="headerlink" href="#mcp-server-execution-model-buildmcp_serverpy" title="Permanent link">&para;</a></h2>
-<p><code>build/mcp_server.py</code> implements MCP <code>2024-11-05</code> over <code>JSON-RPC 2.0</code> using Python 3 standard library modules only:</p>
+<p><code>build/mcp_server.py</code> implements MCP <code>2024-11-05</code> over <code>JSON-RPC 2.0</code> using
+Python 3 standard library modules only:</p>
 <ul>
-<li><strong>Dual Transport</strong>: Serves <code>stdio</code> by default for desktop IDE clients, or HTTP Server-Sent Events (<code>--sse</code>) with
-  <code>/sse</code>, <code>/message</code>, and <code>/health</code> endpoints. When <code>--sse</code> starts without <code>MCP_AUTH_TOKEN</code>, <code>READ_ONLY</code> is forced to
-  <code>true</code> so unauthenticated HTTP clients cannot mutate database state.</li>
-<li><strong>Atomic Cache and Fail-Closed Queries</strong>: <code>run_audit</code> and the periodic daemon thread write <code>latest.json</code> and
-  <code>latest.html</code> via temporary files and atomic <code>os.replace()</code>. Targeted tools (<code>analyze_buffer_pool</code>,
-  <code>diagnose_replication_lag</code>, <code>detect_fragmented_tables</code>) fail closed on SQL errors instead of returning synthetic
-  metrics.</li>
-<li><strong>SQL Sanitization and State Ledger</strong>: <code>apply_recommendation</code> passes SQL through <code>sanitize_sql_statement()</code>, which
-  strips comments, blocks multi-statement payloads and destructive verbs, and restricts execution to an explicit command
-  prefix allowlist. Before executing, it records <code>@@global.&lt;variable_name&gt;</code> in <code>$CACHE_DIR/state.json</code> so
+<li><strong>Dual Transport</strong>: Serves <code>stdio</code> by default for desktop IDE clients, or HTTP
+  Server-Sent Events (<code>--sse</code>) with <code>/sse</code>, <code>/message</code>, and <code>/health</code> endpoints.</li>
+<li><strong>Unauthenticated Guard</strong>: When <code>--sse</code> starts without <code>MCP_AUTH_TOKEN</code>,
+  <code>READ_ONLY</code> is forced to <code>true</code> so HTTP clients cannot mutate database state.</li>
+<li><strong>Atomic Cache</strong>: <code>run_audit</code> and the periodic daemon thread write
+  <code>latest.json</code> and <code>latest.html</code> via temporary files and atomic <code>os.replace()</code>.</li>
+<li><strong>Fail-Closed Queries</strong>: Targeted tools (<code>analyze_buffer_pool</code>,
+  <code>diagnose_replication_lag</code>, <code>detect_fragmented_tables</code>) fail closed on SQL
+  errors instead of returning synthetic metrics.</li>
+<li><strong>SQL Sanitization</strong>: <code>apply_recommendation</code> runs <code>sanitize_sql_statement()</code>
+  to strip comments, block multi-statement payloads and destructive verbs, and
+  enforce an explicit command prefix allowlist.</li>
+<li><strong>State Ledger</strong>: Before executing SQL, <code>apply_recommendation</code> records
+  <code>@@global.&lt;variable_name&gt;</code> in <code>$CACHE_DIR/state.json</code> so
   <code>rollback_recommendation</code> can emit an exact reverse <code>SET GLOBAL</code> statement.</li>
 </ul>
 <h2 id="-agent-json-design-mysqltunerpl"><code>--agent-json</code> Design (<code>mysqltuner.pl</code>)<a class="headerlink" href="#-agent-json-design-mysqltunerpl" title="Permanent link">&para;</a></h2>
-<p>For daemonless pipelines, <code>perl mysqltuner.pl --agent-json</code> converts <code>@adjvars</code> tuning recommendations into structured
-JSON findings:</p>
+<p>For daemonless pipelines, <code>perl mysqltuner.pl --agent-json</code> converts <code>@adjvars</code>
+tuning recommendations into structured JSON findings:</p>
 <ul>
-<li><strong>Static vs Dynamic Classification</strong>: <code>is_static_config_var()</code> marks restart-bound parameters (such as
-  <code>performance_schema</code>, <code>innodb_log_file_size</code>, and <code>innodb_buffer_pool_instances</code>) with <code>requires_restart: true</code> and
-  <code>action.type: "Config"</code>, while runtime-mutable variables emit <code>action.type: "SQL"</code> (<code>SET GLOBAL ...;</code>).</li>
-<li><strong>Sysctl and Dot-Key Filtering</strong>: Keys containing dots (Linux <code>sysctl</code> or Galera <code>gcs.fc_*</code> options) are excluded
-  from SQL <code>SET GLOBAL</code> generation so agents never attempt invalid SQL assignments.</li>
-<li><strong>Deterministic Reversibility</strong>: Every finding pairs <code>action.statement</code> with <code>action.rollback_statement</code>
-  populated from the pre-audit <code>%myvar</code> snapshot.</li>
+<li><strong>Static vs Dynamic Classification</strong>: <code>is_static_config_var()</code> marks
+  restart-bound parameters (<code>performance_schema</code>, <code>innodb_log_file_size</code>,
+  <code>innodb_buffer_pool_instances</code>) with <code>requires_restart: true</code> and
+  <code>action.type: "Config"</code>.</li>
+<li><strong>Runtime SQL Actions</strong>: Runtime-mutable variables emit <code>action.type: "SQL"</code>
+  (<code>SET GLOBAL ...;</code>) with <code>requires_restart: false</code>.</li>
+<li><strong>Sysctl and Dot-Key Filtering</strong>: Keys containing dots (Linux <code>sysctl</code> or
+  Galera <code>gcs.fc_*</code> options) are excluded from SQL <code>SET GLOBAL</code> generation so
+  agents never attempt invalid SQL assignments.</li>
+<li><strong>Deterministic Reversibility</strong>: Every finding pairs <code>action.statement</code> with
+  <code>action.rollback_statement</code> populated from the pre-audit <code>%myvar</code> snapshot.</li>
 </ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
 <li>MCP tool schemas and <code>--agent-json</code> risk matrix:
   <a href="../../../03-reference/cli-and-scripts/mcp-server-api/">MCP Server and Agent JSON API</a></li>
-<li>Guided local MCP workshop: <a href="../../../01-tutorials/02-ai-mcp-sandbox-lab/">AI and MCP Sandbox Lab</a></li>
+<li>Guided local MCP workshop:
+  <a href="../../../01-tutorials/02-ai-mcp-sandbox-lab/">AI and MCP Sandbox Lab</a></li>
 </ul>
 
 
@@ -3940,7 +3952,7 @@ JSON findings:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

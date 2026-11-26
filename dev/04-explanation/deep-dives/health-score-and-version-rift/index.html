@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://mysqltuner.lightpath.fr/latest/04-explanation/deep-dives/health-score-and-version-rift/">
       
       
-        <link rel="prev" href="../../design-decisions/adr-002-versioned-diataxis-docs/">
+        <link rel="prev" href="../../design-decisions/adr-002-versioned-documentation-architecture/">
       
       
       
@@ -3372,14 +3372,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3760,12 +3760,15 @@
 
 
 <h1 id="weighted-health-score-model-and-engine-version-rift">Weighted Health Score Model and Engine Version Rift<a class="headerlink" href="#weighted-health-score-model-and-engine-version-rift" title="Permanent link">&para;</a></h1>
-<p>Analytical deep dive into MySQLTuner's <code>40 / 30 / 30</code> composite health scoring model and its version-disambiguation
-architecture across MySQL (<code>5.7</code>–<code>9.x</code> / <code>26.10</code>) and MariaDB (<code>10.x</code>–<code>13.0</code>).</p>
+<p>Analytical deep dive into MySQLTuner's <code>40 / 30 / 30</code> composite health scoring
+model and its version-disambiguation architecture across MySQL
+(<code>5.7</code> to <code>9.x</code> / <code>26.10</code>) and MariaDB (<code>10.x</code> to <code>13.0</code>).</p>
 <h2 id="weighted-health-score-40-30-30-analytical-model">Weighted Health Score (<code>40 / 30 / 30</code>) Analytical Model<a class="headerlink" href="#weighted-health-score-40-30-30-analytical-model" title="Permanent link">&para;</a></h2>
-<p>Single-metric alerts fail to convey overall server posture when a database has healthy memory ratios alongside exposed
-authentication risks or broken replication threads. <code>calculate_health_score()</code> aggregates operational telemetry into a
-bounded <code>0</code>–<code>100</code> index across three weighted pillars:</p>
+<p>Single-metric alerts fail to convey overall server posture when a database has
+healthy memory ratios alongside exposed authentication risks or broken
+replication threads.</p>
+<p><code>calculate_health_score()</code> aggregates operational telemetry into a bounded
+<code>0</code> to <code>100</code> index across three weighted pillars:</p>
 <pre class="mermaid"><code>flowchart LR
     Total["WeightedHealthScore (0-100)"] --&gt; Perf["Performance (40 pts)"]
     Total --&gt; Sec["Security (30 pts)"]
@@ -3780,44 +3783,52 @@ bounded <code>0</code>–<code>100</code> index across three weighted pillars:</
     Res --&gt; R3["res_meta (10)"]</code></pre>
 <h3 id="design-mechanics-and-neutral-fallbacks">Design Mechanics and Neutral Fallbacks<a class="headerlink" href="#design-mechanics-and-neutral-fallbacks" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Performance (<code>40</code> points)</strong>: Four orthogonal indicators (<code>perf_bp</code>, <code>perf_temp</code>, <code>perf_thread</code>, <code>perf_conn</code>) each
-  contribute <code>0</code>, <code>5</code>, or <code>10</code> points (<code>perf_conn</code> is binary <code>10</code> below <code>80%</code> and <code>0</code> at or above <code>80%</code>). When a metric
-  is undefined (for instance, an unexercised cache), <code>calculate_health_score()</code> assigns a neutral <code>5</code> points rather than
-  penalizing an inactive feature with <code>0</code>.</li>
-<li><strong>Security (<code>30</code> points)</strong>: Starts at <code>30</code> and subtracts <code>5</code> points per entry pushed onto <code>@secrec</code> (covering
-  unencrypted sessions, disabled TLS, insecure <code>TLSv1.0</code>/<code>TLSv1.1</code> or weak ciphers, anonymous users, empty passwords,
-  and deprecated authentication plugins), floored at <code>0</code>.</li>
-<li><strong>Resilience (<code>30</code> points)</strong>: Combines replication health (<code>res_lag</code>: <code>10</code> pts standalone or <code>&lt; 1s</code> lag, <code>5</code> pts for
-  <code>1..59s</code>, <code>0</code> pts for stopped threads or <code>&gt;= 60s</code>), redo/binlog sizing stability (<code>res_logs</code>: <code>-5</code> pts if
-  <code>innodb_log_file_size</code> or <code>innodb_redo_log_capacity</code> needs tuning), and schema modeling health (<code>res_meta</code>: <code>-5</code> pts
-  when <code>scalar(@modeling) &gt; 5</code>).</li>
-<li><strong>Complementary KPIs</strong>: Alongside the composite <code>WeightedHealthScore</code>, <code>calculate_sectional_health_scores()</code> emits
-  five independent <code>0</code>–<code>100</code> domain scores (<code>General</code>, <code>Storage</code>, <code>Security</code>, <code>Replication</code>, <code>Modeling</code>) and a
-  <code>ResourceSaturation</code> vector (<code>CPU</code>, <code>Memory</code>, <code>Connections</code>, <code>IO</code>) so high performance scores cannot mask localized
-  saturation.</li>
+<li><strong>Performance (<code>40</code> points)</strong>: Four orthogonal indicators (<code>perf_bp</code>,
+  <code>perf_temp</code>, <code>perf_thread</code>, <code>perf_conn</code>) each contribute <code>0</code>, <code>5</code>, or <code>10</code>
+  points (<code>perf_conn</code> is binary <code>10</code> below <code>80%</code> and <code>0</code> at or above <code>80%</code>).</li>
+<li><strong>Neutral Fallbacks</strong>: When a metric is undefined (for example, an unexercised
+  cache), <code>calculate_health_score()</code> assigns <code>5</code> points rather than penalizing
+  an inactive feature with <code>0</code>.</li>
+<li><strong>Security (<code>30</code> points)</strong>: Starts at <code>30</code> and subtracts <code>5</code> points per
+  <code>@secrec</code> entry (covering unencrypted sessions, weak TLS/ciphers, anonymous
+  users, empty passwords, and deprecated auth plugins), floored at <code>0</code>.</li>
+<li><strong>Resilience (<code>30</code> points)</strong>: Combines replication lag (<code>res_lag</code>: <code>10</code> pts
+  standalone or <code>&lt; 1s</code>, <code>5</code> pts <code>1..59s</code>, <code>0</code> pts stopped or <code>&gt;= 60s</code>), redo log
+  sizing (<code>res_logs</code>: <code>-5</code> pts), and modeling health (<code>res_meta</code>: <code>-5</code> if
+  <code>&gt; 5</code>).</li>
+<li><strong>Complementary KPIs</strong>: <code>calculate_sectional_health_scores()</code> emits five
+  <code>0</code> to <code>100</code> domain scores (<code>General</code>, <code>Storage</code>, <code>Security</code>, <code>Replication</code>,
+  <code>Modeling</code>) and a <code>ResourceSaturation</code> vector (<code>CPU</code>, <code>Memory</code>, <code>Connections</code>,
+  <code>IO</code>).</li>
 </ul>
 <h2 id="mysql-vs-mariadb-version-rift-analysis">MySQL vs MariaDB Version Rift Analysis<a class="headerlink" href="#mysql-vs-mariadb-version-rift-analysis" title="Permanent link">&para;</a></h2>
-<p>MySQL and MariaDB diverged substantially after MySQL 5.7 and MariaDB 10.0, making naive <code>major.minor</code> version checks
-unsafe when a single script targets both ecosystems.</p>
+<p>MySQL and MariaDB diverged substantially after MySQL 5.7 and MariaDB 10.0,
+making naive <code>major.minor</code> version checks unsafe when a single script targets
+both ecosystems.</p>
 <h3 id="authoritative-engine-disambiguation-is_mariadb">Authoritative Engine Disambiguation (<code>is_mariadb()</code>)<a class="headerlink" href="#authoritative-engine-disambiguation-is_mariadb" title="Permanent link">&para;</a></h3>
-<p>Historically, <code>calculations()</code> stripped vendor suffixes from <code>$myvar{'version'}</code> (<code>s/(.+)-.*?$/$1/</code>) after storing the
-original string in <code>$real_vars{'version'}</code>. Once MySQL introduced calendar-style releases (<code>26.7</code>, <code>26.10</code>) alongside
-MariaDB <code>10.x</code>–<code>13.0</code>, checking <code>major &gt;= 10</code> alone misclassified MySQL <code>26.x</code> as MariaDB.</p>
+<p>Historically, <code>calculations()</code> stripped vendor suffixes from <code>$myvar{'version'}</code>
+(<code>s/(.+)-.*?$/$1/</code>) after storing the original string in
+<code>$real_vars{'version'}</code>.</p>
+<p>Once MySQL introduced calendar-style releases (<code>26.7</code>, <code>26.10</code>) alongside
+MariaDB <code>10.x</code> to <code>13.0</code>, checking <code>major &gt;= 10</code> alone misclassified MySQL
+<code>26.x</code>.</p>
 <p><code>is_mariadb()</code> resolves this ambiguity in three deterministic stages:</p>
 <ol>
-<li>Match <code>mariadb</code> case-insensitively in <code>$myvar{'version'}</code> or <code>$myvar{'version_comment'}</code> (returning <code>1</code>), or match
+<li>Match <code>mariadb</code> case-insensitively in <code>$myvar{'version'}</code> or
+   <code>$myvar{'version_comment'}</code> (returning <code>1</code>), or match
    <code>mysql|percona|oracle|aurora</code> (returning <code>0</code>).</li>
-<li>Compare the unstripped <code>$real_vars{'version'}</code> base prefix when <code>-MariaDB</code> was stripped during <code>calculations()</code>.</li>
-<li>Fall back to numeric major bounds <code>( $maj &gt;= 10 &amp;&amp; $maj &lt; 26 )</code>, which isolates MariaDB <code>10.x</code>–<code>13.x</code> from MySQL
-   <code>5.5</code>–<code>9.x</code> and <code>26.x</code>.</li>
+<li>Compare the unstripped <code>$real_vars{'version'}</code> base prefix when <code>-MariaDB</code>
+   was stripped during <code>calculations()</code>.</li>
+<li>Fall back to numeric major bounds <code>( $maj &gt;= 10 &amp;&amp; $maj &lt; 26 )</code>, which
+   isolates MariaDB <code>10.x</code> to <code>13.x</code> from MySQL <code>5.5</code> to <code>9.x</code> and <code>26.x</code>.</li>
 </ol>
 <h3 id="cross-engine-divergence-points-in-mysqltunerpl">Cross-Engine Divergence Points in <code>mysqltuner.pl</code><a class="headerlink" href="#cross-engine-divergence-points-in-mysqltunerpl" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Subsystem</th>
-<th style="text-align: left;">MySQL (<code>5.7</code>–<code>9.x</code> / <code>26.10</code>)</th>
-<th style="text-align: left;">MariaDB (<code>10.x</code>–<code>13.0</code>)</th>
+<th style="text-align: left;">MySQL (<code>5.7</code> to <code>9.x</code> / <code>26.10</code>)</th>
+<th style="text-align: left;">MariaDB (<code>10.x</code> to <code>13.0</code>)</th>
 <th style="text-align: left;">Diagnostic Adaptation</th>
 </tr>
 </thead>
@@ -3904,7 +3915,7 @@ MariaDB <code>10.x</code>–<code>13.0</code>, checking <code>major &gt;= 10</co
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../design-decisions/adr-002-versioned-diataxis-docs/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ADR-002 Versioned Diataxis Docs">
+          <a href="../../design-decisions/adr-002-versioned-documentation-architecture/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ADR-002 Versioned Documentation Architecture">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -3914,7 +3925,7 @@ MariaDB <code>10.x</code>–<code>13.0</code>, checking <code>major &gt;= 10</co
                 Previous
               </span>
               <div class="md-ellipsis">
-                ADR-002 Versioned Diataxis Docs
+                ADR-002 Versioned Documentation Architecture
               </div>
             </div>
           </a>
@@ -3948,7 +3959,7 @@ MariaDB <code>10.x</code>–<code>13.0</code>, checking <code>major &gt;= 10</co
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

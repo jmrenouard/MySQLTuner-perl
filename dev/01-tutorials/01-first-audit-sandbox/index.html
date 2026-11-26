@@ -3514,14 +3514,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3794,10 +3794,12 @@
 
 <h1 id="tutorial-first-mysqltuner-audit-sandbox">Tutorial: First MySQLTuner Audit Sandbox<a class="headerlink" href="#tutorial-first-mysqltuner-audit-sandbox" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Learning Goal:</strong> Spin up a disposable MariaDB container, run a full verbose MySQLTuner audit, generate a standalone
-HTML dashboard report, and clean up the sandbox cleanly.</p>
-<p><strong>Environment Warning:</strong> Run this tutorial only in an isolated local Docker sandbox. Never run tutorial commands
-against staging or production database servers.</p>
+<p><strong>Learning Goal:</strong> Spin up a disposable MariaDB container, run a full verbose
+MySQLTuner audit, generate a standalone HTML dashboard report, and clean up
+the sandbox cleanly.</p>
+<p><strong>Environment Warning:</strong> Run this tutorial only in an isolated local Docker
+sandbox. Never run tutorial commands against staging or production database
+servers.</p>
 </blockquote>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>Make sure your workstation has the following tools ready before starting:</p>
@@ -3812,9 +3814,11 @@ against staging or production database servers.</p>
 <p>By the end of this tutorial, you will have:</p>
 <ol>
 <li>Launched an isolated MariaDB 11.4 sandbox container on port <code>13306</code>.</li>
-<li>Executed <code>perl mysqltuner.pl --verbose</code> to inspect storage engines, health score, and recommendations.</li>
+<li>Executed <code>perl mysqltuner.pl --verbose</code> to inspect storage engines, health
+   score, and recommendations.</li>
 <li>Generated a self-contained HTML diagnostic report using <code>--reportfile</code>.</li>
-<li>Audited the container directly via <code>--container</code> and removed the sandbox cleanly.</li>
+<li>Audited the container directly via <code>--container</code> and removed the sandbox
+   cleanly.</li>
 </ol>
 <h2 id="sandbox-workflow-overview">Sandbox Workflow Overview<a class="headerlink" href="#sandbox-workflow-overview" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>flowchart LR
@@ -3823,7 +3827,8 @@ against staging or production database servers.</p>
     Report --&gt; Container["4. Inspect Container Metrics"]
     Container --&gt; Cleanup["5. Remove Sandbox"]</code></pre>
 <h2 id="step-1-start-an-isolated-mariadb-sandbox">Step 1: Start an Isolated MariaDB Sandbox<a class="headerlink" href="#step-1-start-an-isolated-mariadb-sandbox" title="Permanent link">&para;</a></h2>
-<p>Launch a temporary MariaDB 11.4 container with a sandbox password and wait until it accepts queries:</p>
+<p>Launch a temporary MariaDB 11.4 container with a sandbox password and wait
+until it accepts queries:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--name<span class="w"> </span>mt-sandbox-db<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>-e<span class="w"> </span><span class="nv">MARIADB_ROOT_PASSWORD</span><span class="o">=</span>sandbox_pass<span class="w"> </span><span class="se">\</span>
@@ -3843,8 +3848,9 @@ against staging or production database servers.</p>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="mi">1</span><span class="w"> </span><span class="k">row</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="kt">set</span><span class="w"> </span><span class="p">(</span><span class="mf">0.001</span><span class="w"> </span><span class="n">sec</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="step-2-run-your-first-verbose-audit">Step 2: Run Your First Verbose Audit<a class="headerlink" href="#step-2-run-your-first-verbose-audit" title="Permanent link">&para;</a></h2>
-<p>Execute <code>mysqltuner.pl</code> from the repository root with <code>--verbose</code> and <code>--forcemem</code> so MySQLTuner knows the simulated
-host RAM allocation for accurate buffer recommendations:</p>
+<p>Execute <code>mysqltuner.pl</code> from the repository root with <code>--verbose</code> and
+<code>--forcemem</code> so MySQLTuner knows the simulated host RAM allocation for accurate
+buffer recommendations:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--host<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--port<span class="w"> </span><span class="m">13306</span><span class="w"> </span><span class="se">\</span>
@@ -3876,11 +3882,13 @@ host RAM allocation for accurate buffer recommendations:</p>
 <a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    MySQL started within last 24 hours - recommendations may be inaccurate
 <a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>    Performance_schema should be activated.
 </code></pre></div>
-<p>Notice two helpful things right away: MySQLTuner flags when uptime is under 24 hours, and it summarizes a Weighted
-Health Score out of 100 across Performance, Security, and Resilience.</p>
+<p>Notice two helpful things right away: MySQLTuner flags when uptime is under 24
+hours, and it summarizes a Weighted Health Score out of 100 across Performance,
+Security, and Resilience.</p>
 <h2 id="step-3-generate-a-standalone-html-report">Step 3: Generate a Standalone HTML Report<a class="headerlink" href="#step-3-generate-a-standalone-html-report" title="Permanent link">&para;</a></h2>
-<p>MySQLTuner builds an interactive HTML dashboard in pure Perl with zero external dependencies. Run the audit again with
-<code>--reportfile</code> to save a self-contained report:</p>
+<p>MySQLTuner builds an interactive HTML dashboard in pure Perl with zero external
+dependencies. Run the audit again with <code>--reportfile</code> to save a self-contained
+report:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>--host<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>--port<span class="w"> </span><span class="m">13306</span><span class="w"> </span><span class="se">\</span>
@@ -3895,11 +3903,11 @@ Health Score out of 100 across Performance, Security, and Resilience.</p>
 <p>Expected output:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>-rw-r--r-- 1 user user 42K Nov 23 12:00 /tmp/sandbox_report.html
 </code></pre></div>
-<p>Open <code>/tmp/sandbox_report.html</code> in any browser to view the Health Score gauge, category breakdowns, and collapsible
-console output.</p>
+<p>Open <code>/tmp/sandbox_report.html</code> in any browser to view the Health Score gauge,
+category breakdowns, and collapsible console output.</p>
 <h2 id="step-4-audit-the-container-directly-with-container">Step 4: Audit the Container Directly with <code>--container</code><a class="headerlink" href="#step-4-audit-the-container-directly-with-container" title="Permanent link">&para;</a></h2>
-<p>Instead of passing host RAM manually, pass <code>--container</code> to let MySQLTuner inspect cgroup memory limits and container
-logs directly through Docker:</p>
+<p>Instead of passing host RAM manually, pass <code>--container</code> to let MySQLTuner
+inspect cgroup memory limits and container logs directly through Docker:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>perl<span class="w"> </span>mysqltuner.pl<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>--container<span class="w"> </span>docker:mt-sandbox-db<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>--host<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span><span class="se">\</span>
@@ -3908,10 +3916,11 @@ logs directly through Docker:</p>
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span>--pass<span class="w"> </span>sandbox_pass<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span>--verbose
 </code></pre></div>
-<p>In container mode, MySQLTuner automatically skips host kernel recommendations (<code>sysctl</code>) that do not apply inside an
-isolated container.</p>
+<p>In container mode, MySQLTuner automatically skips host kernel recommendations
+(<code>sysctl</code>) that do not apply inside an isolated container.</p>
 <h2 id="step-5-clean-up-the-sandbox">Step 5: Clean Up the Sandbox<a class="headerlink" href="#step-5-clean-up-the-sandbox" title="Permanent link">&para;</a></h2>
-<p>Remove the temporary container and generated report file once you finish exploring:</p>
+<p>Remove the temporary container and generated report file once you finish
+exploring:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>docker<span class="w"> </span>rm<span class="w"> </span>-f<span class="w"> </span>mt-sandbox-db
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>rm<span class="w"> </span>-f<span class="w"> </span>/tmp/sandbox_report.html
 </code></pre></div>
@@ -3920,12 +3929,15 @@ isolated container.</p>
 </code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Run audits over SSH, Podman, or Kubernetes in <a href="../../02-how-to-guides/">How-To Guides</a>
-  or go directly to <a href="../../02-how-to-guides/deployment/run-remote-and-container-audit/">Remote and Container Audits</a></li>
-<li>Inspect every flag and environment variable in <a href="../../03-reference/">Reference</a>
-  and <a href="../../03-reference/cli-and-scripts/cli-options/">CLI Options &amp; Environment</a></li>
-<li>Learn how the Weighted Health Score and version checks work in <a href="../../04-explanation/">Explanation</a>
-  and <a href="../../04-explanation/deep-dives/health-score-and-version-rift/">Health Score &amp; Version Rift</a></li>
+<li>Run audits over SSH, Podman, or Kubernetes in
+  <a href="../../02-how-to-guides/">How-To Guides</a> or go directly to
+  <a href="../../02-how-to-guides/deployment/run-remote-and-container-audit/">Remote and Container Audits</a></li>
+<li>Inspect every flag and environment variable in
+  <a href="../../03-reference/">Reference</a> and
+  <a href="../../03-reference/cli-and-scripts/cli-options/">CLI Options &amp; Environment</a></li>
+<li>Learn how the Weighted Health Score and version checks work in
+  <a href="../../04-explanation/">Explanation</a> and
+  <a href="../../04-explanation/deep-dives/health-score-and-version-rift/">Health Score &amp; Version Rift</a></li>
 </ul>
 
 
@@ -4022,7 +4034,7 @@ isolated container.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>

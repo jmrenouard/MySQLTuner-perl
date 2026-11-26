@@ -16,7 +16,7 @@
         <link rel="prev" href="../../architecture-overview/ai-agent-architecture/">
       
       
-        <link rel="next" href="../adr-002-versioned-diataxis-docs/">
+        <link rel="next" href="../adr-002-versioned-documentation-architecture/">
       
       
         
@@ -3506,14 +3506,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../adr-002-versioned-diataxis-docs/" class="md-nav__link">
+      <a href="../adr-002-versioned-documentation-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ADR-002 Versioned Diataxis Docs
+    ADR-002 Versioned Documentation Architecture
   
 
     
@@ -3799,11 +3799,13 @@
 </tbody>
 </table>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
-<p>Database administrators frequently execute diagnostic tooling on hardened, air-gapped, or ephemeral Linux, BSD,
-Solaris, AIX, macOS, and Windows hosts where installing compilers, CPAN toolchains, or third-party runtime packages is
-prohibited or impractical.</p>
-<p>MySQLTuner's core mission requires a tool that can be copied as a single artifact onto any target host and audited
-directly by security teams before execution.</p>
+<p>Database administrators frequently execute diagnostic tooling on hardened,
+air-gapped, or ephemeral Linux, BSD, Solaris, AIX, macOS, and Windows hosts. On
+those systems, installing compilers, CPAN toolchains, or third-party runtime
+packages is prohibited or impractical.</p>
+<p>MySQLTuner's core mission requires a tool that can be copied as a single
+artifact onto any target host and audited directly by security teams before
+execution.</p>
 <h2 id="options-considered-and-trade-offs">Options Considered and Trade-Offs<a class="headerlink" href="#options-considered-and-trade-offs" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3840,40 +3842,51 @@ directly by security teams before execution.</p>
 </tbody>
 </table>
 <h2 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">&para;</a></h2>
-<p>Adopt <strong>Option A</strong> as an immutable constitutional constraint for <code>mysqltuner.pl</code>:</p>
+<p>Adopt <strong>Option A</strong> as an immutable constitutional constraint for
+<code>mysqltuner.pl</code>:</p>
 <ol>
-<li>Keep the entire diagnostic engine inside a single executable file (<code>mysqltuner.pl</code>). Splitting <code>mysqltuner.pl</code> into
-   external <code>.pm</code> modules is prohibited.</li>
-<li>Restrict imports strictly to Perl Core modules (<code>POSIX</code>, <code>File::Spec</code>, <code>File::Temp</code>, <code>Getopt::Long</code>, <code>Pod::Usage</code>,
-   <code>Sys::Hostname</code>, <code>File::Basename</code>, <code>Cwd</code>) and graceful <code>eval { require ... }</code> checks for optional Core modules
-   (<code>JSON::PP</code>, <code>Time::HiRes</code>, <code>Digest::SHA</code>, <code>Time::Local</code>).</li>
-<li>Delegate SQL execution through existing <code>mysql</code> / <code>mariadb</code> and <code>mysqladmin</code> / <code>mariadb-admin</code> CLI binaries rather
-   than requiring <code>DBD::mysql</code> or <code>DBD::MariaDB</code>.</li>
-<li>Isolate optional ecosystem microservices (such as <code>build/mcp_server.py</code>) as external wrappers using Python 3 standard
-   library only, leaving the core Perl diagnostic tool self-contained.</li>
+<li>Keep the entire diagnostic engine inside a single executable file
+   (<code>mysqltuner.pl</code>). Splitting <code>mysqltuner.pl</code> into external <code>.pm</code> modules is
+   prohibited.</li>
+<li>Restrict imports strictly to Perl Core modules (<code>POSIX</code>, <code>File::Spec</code>,
+   <code>File::Temp</code>, <code>Getopt::Long</code>, <code>Pod::Usage</code>, <code>Sys::Hostname</code>,
+   <code>File::Basename</code>, <code>Cwd</code>).</li>
+<li>Load optional Perl Core modules (<code>JSON::PP</code>, <code>Time::HiRes</code>, <code>Digest::SHA</code>,
+   <code>Time::Local</code>) through graceful <code>eval { require ... }</code> checks.</li>
+<li>Delegate SQL execution through existing <code>mysql</code> / <code>mariadb</code> and <code>mysqladmin</code>
+   / <code>mariadb-admin</code> CLI binaries rather than requiring <code>DBD::mysql</code> or
+   <code>DBD::MariaDB</code>.</li>
+<li>Isolate optional ecosystem microservices (such as <code>build/mcp_server.py</code>) as
+   external wrappers using Python 3 standard library only, leaving the core Perl
+   diagnostic tool self-contained.</li>
 </ol>
 <h2 id="consequences">Consequences<a class="headerlink" href="#consequences" title="Permanent link">&para;</a></h2>
 <h3 id="positive">Positive<a class="headerlink" href="#positive" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Zero-Install Portability</strong>: Administrators can download or copy <code>mysqltuner.pl</code> directly into air-gapped
-  environments and run diagnostics immediately using base Perl.</li>
-<li><strong>Minimal Attack Surface</strong>: Excluding third-party CPAN modules eliminates external supply-chain dependencies and
-  simplifies security sign-off.</li>
-<li><strong>Transport Uniformity</strong>: Invoking <code>mysql</code> and OS utilities through <code>execute_system_command()</code> enables identical
-  execution locally, over SSH (<code>--ssh-host</code>), or inside containers (<code>--container</code>).</li>
+<li><strong>Zero-Install Portability</strong>: Administrators can download or copy
+  <code>mysqltuner.pl</code> directly into air-gapped environments and run diagnostics
+  immediately using base Perl.</li>
+<li><strong>Minimal Attack Surface</strong>: Excluding third-party CPAN modules eliminates
+  external supply chain dependencies and simplifies security sign-off.</li>
+<li><strong>Transport Uniformity</strong>: Invoking <code>mysql</code> and OS utilities through
+  <code>execute_system_command()</code> enables identical execution locally, over SSH
+  (<code>--ssh-host</code>), or inside containers (<code>--container</code>).</li>
 </ul>
 <h3 id="negative-and-structural-mitigations">Negative and Structural Mitigations<a class="headerlink" href="#negative-and-structural-mitigations" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Large Single-File Footprint</strong>: <code>mysqltuner.pl</code> exceeds 19,000 lines, raising merge-conflict and readability risks.
-  The project mitigates this by enforcing <code>perltidy</code> formatting, pure calculation helper functions, automated
-  compliance auditing (<code>build/check_compliance.pl</code>), and subtest-decomposed unit tests in <code>tests/</code>.</li>
-<li><strong>CLI Subprocess Parsing</strong>: Querying via the <code>mysql</code> CLI rather than a binary wire driver requires defensive shell
-  escaping (<code>_shell_quote()</code>, <code>[REQ-INFRA-01]</code>, <code>[REQ-INFRA-02]</code>) and explicit client error extraction
-  (<code>extract_client_error()</code>).</li>
+<li><strong>Large Single-File Footprint</strong>: <code>mysqltuner.pl</code> exceeds 19,000 lines, raising
+  merge-conflict and readability risks.</li>
+<li><strong>Quality Controls</strong>: The project mitigates size risks via <code>perltidy</code>, pure
+  calculation helpers, <code>build/check_compliance.pl</code>, and subtest-decomposed unit
+  tests in <code>tests/</code>.</li>
+<li><strong>CLI Subprocess Parsing</strong>: Querying via the <code>mysql</code> CLI rather than a binary
+  wire driver requires defensive shell escaping (<code>_shell_quote()</code>,
+  <code>[REQ-INFRA-01]</code>, <code>[REQ-INFRA-02]</code>) and <code>extract_client_error()</code>.</li>
 </ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Full technical reference index: <a href="../../../03-reference/">Reference Overview</a></li>
+<li>Full technical reference index:
+  <a href="../../../03-reference/">Reference Overview</a></li>
 <li>Capabilities and Core JSON indicator export:
   <a href="../../../03-reference/architecture-specs/capabilities-and-indicators/">Capabilities and Indicators</a></li>
 <li>CLI contract and exit codes:
@@ -3931,13 +3944,13 @@ directly by security teams before execution.</p>
         
         
           
-          <a href="../adr-002-versioned-diataxis-docs/" class="md-footer__link md-footer__link--next" aria-label="Next: ADR-002 Versioned Diataxis Docs">
+          <a href="../adr-002-versioned-documentation-architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: ADR-002 Versioned Documentation Architecture">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                ADR-002 Versioned Diataxis Docs
+                ADR-002 Versioned Documentation Architecture
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -3974,7 +3987,7 @@ directly by security teams before execution.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
