@@ -14,7 +14,12 @@ on:
       - "build/mkdocs_hooks.py"
       - "build/check_diataxis_docs.py"
       - "build/docs_htaccess"
+      - ".vale/**"
       - ".github/workflows/docs-ci.yml"
+      - ".github/workflows/docs-deploy.yml"
+      - "tests/unit_mkdocs_diataxis.t"
+      - "tests/unit_docs_tutorials_howtos.t"
+      - "tests/unit_docs_tutorials_howtos.py"
       - "releases/**"
       - "CURRENT_VERSION.txt"
       - "mysql_support.md"
@@ -34,7 +39,12 @@ on:
       - "build/mkdocs_hooks.py"
       - "build/check_diataxis_docs.py"
       - "build/docs_htaccess"
+      - ".vale/**"
       - ".github/workflows/docs-ci.yml"
+      - ".github/workflows/docs-deploy.yml"
+      - "tests/unit_mkdocs_diataxis.t"
+      - "tests/unit_docs_tutorials_howtos.t"
+      - "tests/unit_docs_tutorials_howtos.py"
       - "releases/**"
       - "CURRENT_VERSION.txt"
       - "mysql_support.md"
@@ -46,7 +56,7 @@ on:
 
 jobs:
   docs-quality:
-    name: Validate Diataxis, STE, Markdownlint, and MkDocs Build
+    name: Validate Structure, Links, Style, and MkDocs Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -62,8 +72,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-docs.txt
 
-      - name: Run Diataxis and STE validator
-        run: python3 build/check_diataxis_docs.py docs --strict
+      - name: Run documentation structure, link, and style validator
+        run: python3 build/check_diataxis_docs.py docs --strict --mkdocs-config mkdocs.yml
 
       - name: Run markdownlint-cli2
         uses: DavidAnson/markdownlint-cli2-action@05f32210e84442804257b2a6f20b273450ec8265 # v19
@@ -72,8 +82,14 @@ jobs:
             docs/**/*.md
           config: .markdownlint.json
 
+      - name: Run Vale prose linter
+        uses: vale-cli/vale-action@85f9f7f2c5f449ac0ae5b66662961bae3f77ca6a # v2
+        with:
+          files: docs
+          fail_on_error: true
+
       - name: Build MkDocs site in strict mode
         run: mkdocs build --strict
 
-      - name: Run MkDocs Diataxis unit tests
-        run: prove -v tests/unit_mkdocs_diataxis.t
+      - name: Run documentation unit tests
+        run: prove -v tests/unit_mkdocs_diataxis.t tests/unit_docs_tutorials_howtos.t

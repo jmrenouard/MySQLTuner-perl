@@ -97,12 +97,14 @@ subtest 'Subtest 1: Config files LF endings and JSON/YAML schema' => sub {
     my $mdl_raw = slurp_raw( File::Spec->catfile( $PROJECT_ROOT, '.markdownlint.json' ) );
     my $mdl     = eval { decode_json($mdl_raw) };
     ok( defined $mdl && !$@, '.markdownlint.json parses as valid JSON' );
-    is( $mdl->{MD013}{line_length}, 120, 'MD013 line_length is 120' );
+    is( $mdl->{MD013}{line_length}, 80, 'MD013 line_length is 80' );
     ok( !$mdl->{MD013}{code_blocks}, 'MD013 code_blocks disabled' );
     ok( !$mdl->{MD013}{tables},      'MD013 tables disabled' );
+    ok( exists $mdl->{MD013}{headings} && !$mdl->{MD013}{headings}, 'MD013 headings disabled' );
     ok( $mdl->{MD024}{siblings_only}, 'MD024 siblings_only enabled' );
     ok( $mdl->{MD041},                'MD041 enabled' );
     is( $mdl->{MD046}{style}, 'fenced', 'MD046 style is fenced' );
+    ok( exists $mdl->{MD060} && !$mdl->{MD060}, 'MD060 disabled' );
 
     my $vale_ini = slurp_raw( File::Spec->catfile( $PROJECT_ROOT, '.vale.ini' ) );
     like( $vale_ini, qr/StylesPath\s*=\s*\.vale\/styles/, 'Vale StylesPath configured' );
@@ -110,6 +112,7 @@ subtest 'Subtest 1: Config files LF endings and JSON/YAML schema' => sub {
     like( $vale_ini, qr/Vocab\s*=\s*MySQLTuner/,          'Vale Vocab configured with MySQLTuner' );
     like( $vale_ini, qr{\[docs/02-how-to-guides/\*\*/\*\.md\]}, 'Vale targets 02-how-to-guides' );
     unlike( $vale_ini, qr/STE-Procedural/, 'Vale does not reference missing STE-Procedural style' );
+    unlike( $vale_ini, qr/ASD-STE100/,     'Vale config contains no ASD-STE100 reference' );
 
     my $vocab = File::Spec->catfile(
         $PROJECT_ROOT, '.vale', 'styles', 'config', 'vocabularies', 'MySQLTuner', 'accept.txt'
@@ -144,6 +147,35 @@ assert cfg.get("docs_dir") == "docs", f"bad docs_dir: {cfg.get('docs_dir')}"
 assert cfg.get("theme", {}).get("name") == "material", "theme.name must be material"
 assert cfg.get("extra", {}).get("version", {}).get("provider") == "mike", "version provider must be mike"
 assert cfg.get("extra", {}).get("version", {}).get("default") == "latest", "default version must be latest"
+assert cfg.get("extra", {}).get("version", {}).get("alias") is True, "version alias must be true"
+
+exclude_raw = cfg.get("exclude_docs")
+exclude_text = (
+    exclude_raw
+    if isinstance(exclude_raw, str)
+    else "\n".join(str(x) for x in (exclude_raw or []))
+)
+for required_excl in (
+    "ACTION_LOGBOOK.md",
+    "RCA_REGISTER.md",
+    "fr/",
+    "*.fr.md",
+    "*_fr.md",
+    "01-tutoriels/",
+    "02-guides-pratiques/",
+    "03-reference-fr/",
+    "04-explications/",
+):
+    assert required_excl in exclude_text, f"exclude_docs missing {required_excl}"
+
+ext_names = []
+for ext in cfg.get("markdown_extensions", []):
+    if isinstance(ext, str):
+        ext_names.append(ext)
+    elif isinstance(ext, dict):
+        ext_names.extend(str(k) for k in ext.keys())
+for banned_ext in ("pymdownx.snippets", "pymdownx.tabbed"):
+    assert banned_ext not in ext_names, f"disallowed markdown extension present: {banned_ext}"
 
 plugins = cfg.get("plugins", [])
 mike_cfg = None
@@ -184,15 +216,15 @@ PY
 };
 
 # ===========================================================================
-# Subtest 2: Diataxis structure, links, quadrant governance, and STE validator
+# Subtest 2: Documentation structure, links, section governance, and STE validator
 # ===========================================================================
-subtest 'Subtest 2: Diataxis structure, relative links, governance, and STE' => sub {
+subtest 'Subtest 2: Documentation structure, relative links, governance, and STE' => sub {
     my $validator = File::Spec->catfile( $PROJECT_ROOT, 'build', 'check_diataxis_docs.py' );
     ok( -f $validator, 'build/check_diataxis_docs.py exists' );
     ok( has_lf_only($validator), 'build/check_diataxis_docs.py uses Unix LF line endings' );
 
   SKIP: {
-        skip 'python3 required to execute build/check_diataxis_docs.py', 7 unless defined $PYTHON_BIN;
+        skip 'python3 required to execute build/check_diataxis_docs.py', 11 unless defined $PYTHON_BIN;
 
         my $tmp_pyc_dir = tempdir( CLEANUP => 1 );
         my $pyc_out     = File::Spec->catfile( $tmp_pyc_dir, 'check_diataxis_docs.pyc' );
@@ -204,10 +236,11 @@ PY
         my ( $crc, $cout ) = run_py_script( $PYTHON_BIN, $compile_py, $validator, $pyc_out );
         is( $crc, 0, "build/check_diataxis_docs.py compiles cleanly: $cout" );
 
-        my $docs_dir = File::Spec->catdir( $PROJECT_ROOT, 'docs' );
-        my $vout     = qx("$PYTHON_BIN" -B "$validator" "$docs_dir" --strict 2>&1);
-        my $vrc      = $? >> 8;
-        is( $vrc, 0, "check_diataxis_docs.py docs --strict exits 0: $vout" );
+        my $docs_dir   = File::Spec->catdir( $PROJECT_ROOT, 'docs' );
+        my $mkdocs_cfg = File::Spec->catfile( $PROJECT_ROOT, 'mkdocs.yml' );
+        my $vout       = qx("$PYTHON_BIN" -B "$validator" "$docs_dir" --strict --mkdocs-config "$mkdocs_cfg" 2>&1);
+        my $vrc        = $? >> 8;
+        is( $vrc, 0, "check_diataxis_docs.py docs --strict --mkdocs-config mkdocs.yml exits 0: $vout" );
         like(
             $vout,
             qr/Summary:\s*0\s+error\(s\),\s*0\s+warning\(s\)/,
@@ -226,15 +259,37 @@ PY
         }
         my $bad_howto = File::Spec->catfile( $bad_docs, '02-how-to-guides', 'bad-guide.md' );
         open my $bfh, '>:raw', $bad_howto or die "open $bad_howto: $!";
-        print {$bfh} "# Bad Guide\n\nSee [Missing](missing_target.md).\n\n1. You shouldn't do this.\n";
+        print {$bfh} "# Bad Guide\n\nSee [Missing](missing_target.md).\n\n"
+          . "This Diataxis guide contains a prose line that intentionally exceeds eighty characters in length.\n\n"
+          . "1. You shouldn't do this.\n";
         close $bfh;
 
-        my $neg_out = qx("$PYTHON_BIN" -B "$validator" "$bad_docs" --strict 2>&1);
+        my $bad_mkdocs = File::Spec->catfile( $tmp_pyc_dir, 'bad_mkdocs.yml' );
+        open my $mfh, '>:raw', $bad_mkdocs or die "open $bad_mkdocs: $!";
+        print {$mfh} "site_name: Bad Docs\n"
+          . "markdown_extensions:\n"
+          . "  - pymdownx.snippets\n"
+          . "  - pymdownx.superfences:\n"
+          . "      custom_fences:\n"
+          . "        - name: mermaid\n"
+          . "          class: mermaid\n"
+          . "          format: !!python/name:pymdownx.superfences.fence_code_format\n"
+          . "extra:\n"
+          . "  version:\n"
+          . "    provider: mike\n"
+          . "    alias: true\n";
+        close $mfh;
+
+        my $neg_out = qx("$PYTHON_BIN" -B "$validator" "$bad_docs" --strict --mkdocs-config "$bad_mkdocs" 2>&1);
         my $neg_rc  = $? >> 8;
-        is( $neg_rc, 1, 'check_diataxis_docs.py rejects broken link, STE error, and missing sections' );
+        is( $neg_rc, 1, 'check_diataxis_docs.py rejects broken link, STE error, methodology ref, >80 char line, and bad mkdocs.yml' );
         like( $neg_out, qr/Broken relative link target/, 'Negative test detects broken relative link' );
         like( $neg_out, qr/STE Rule/,                    'Negative test detects STE violation' );
         like( $neg_out, qr/missing a rollback/i,         'Strict mode promotes missing rollback to ERROR' );
+        like( $neg_out, qr/Forbidden methodology reference/i, 'Negative test detects methodology reference' );
+        like( $neg_out, qr/Line exceeds 80 characters/,  'Negative test detects >80 char prose line' );
+        like( $neg_out, qr/exclude ACTION_LOGBOOK\.md and RCA_REGISTER\.md via exclude_docs/, 'Negative test detects missing exclude_docs' );
+        like( $neg_out, qr/must not enable 'pymdownx\.snippets'/, 'Negative test detects disallowed pymdownx.snippets' );
     }
 };
 
@@ -402,15 +457,44 @@ for wf_name, wf_data in (("docs-ci.yml", ci), ("docs-deploy.yml", deploy)):
     for ref in uses_list:
         assert sha_re.match(ref), f"{wf_name} uses unpinned action '{ref}'"
 
+ci_on = ci.get("on") if "on" in ci else ci.get(True, {})
+assert isinstance(ci_on, dict), "docs-ci.yml missing on: trigger"
+required_ci_paths = (
+    ".github/workflows/docs-deploy.yml",
+    "tests/unit_mkdocs_diataxis.t",
+    "tests/unit_docs_tutorials_howtos.t",
+    "tests/unit_docs_tutorials_howtos.py",
+)
+for trigger in ("pull_request", "push"):
+    trig_paths = ci_on.get(trigger, {}).get("paths", [])
+    assert isinstance(trig_paths, list), f"docs-ci.yml {trigger}.paths missing"
+    for req_p in required_ci_paths:
+        assert req_p in trig_paths, f"docs-ci.yml {trigger}.paths missing {req_p}"
+
 ci_steps = ci["jobs"]["docs-quality"]["steps"]
 ci_runs = "\n".join(str(s.get("run", "")) for s in ci_steps)
-assert "build/check_diataxis_docs.py docs --strict" in ci_runs, "docs-ci must run check_diataxis_docs.py"
+assert "build/check_diataxis_docs.py docs --strict --mkdocs-config mkdocs.yml" in ci_runs, (
+    "docs-ci must run check_diataxis_docs.py with --mkdocs-config mkdocs.yml"
+)
 assert "mkdocs build --strict" in ci_runs, "docs-ci must run mkdocs build --strict"
-assert "prove -v tests/unit_mkdocs_diataxis.t" in ci_runs, "docs-ci must run prove -v tests/unit_mkdocs_diataxis.t"
+assert "prove -v tests/unit_mkdocs_diataxis.t tests/unit_docs_tutorials_howtos.t" in ci_runs, (
+    "docs-ci must run prove -v tests/unit_mkdocs_diataxis.t tests/unit_docs_tutorials_howtos.t"
+)
 assert any(
     "markdownlint-cli2-action@" in str(s.get("uses", ""))
     for s in ci_steps
 ), "docs-ci must run markdownlint-cli2-action"
+assert any(
+    str(s.get("uses", "")).startswith("vale-cli/vale-action@")
+    for s in ci_steps
+), "docs-ci must run vale-cli/vale-action"
+
+deploy_on = deploy.get("on") if "on" in deploy else deploy.get(True, {})
+assert isinstance(deploy_on, dict), "docs-deploy.yml missing on: trigger"
+deploy_push_paths = deploy_on.get("push", {}).get("paths", [])
+assert isinstance(deploy_push_paths, list) and len(deploy_push_paths) > 0, (
+    "docs-deploy.yml on.push must define non-empty paths: filter"
+)
 
 assert deploy.get("concurrency", {}).get("group") == "docs-deploy", "docs-deploy concurrency group missing"
 assert deploy.get("concurrency", {}).get("cancel-in-progress") is False, "cancel-in-progress must be false"

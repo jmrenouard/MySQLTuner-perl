@@ -46,7 +46,7 @@ help:
 	@echo "  sync_translations: Synchronize version badges and invariants across README translations"
 	@echo "  check_translations: Check synchronization of multilingual README translations"
 	@echo "  docs-install:      Install MkDocs Material and mike in .venv-docs"
-	@echo "  docs-check:        Validate Diataxis structure, links, governance, and STE"
+	@echo "  docs-check:        Validate documentation structure, links, governance, and style"
 	@echo "  docs-build:        Build strict static MkDocs site"
 	@echo "  docs-serve:        Serve MkDocs documentation locally"
 
@@ -296,7 +296,7 @@ docs-install:
 	$(VENV_DOCS)/bin/pip install -r requirements-docs.txt
 
 docs-check:
-	python3 build/check_diataxis_docs.py docs --strict
+	python3 build/check_diataxis_docs.py docs --strict --mkdocs-config mkdocs.yml
 
 docs-build:
 	@if [ -x "$(VENV_DOCS)/bin/mkdocs" ]; then \

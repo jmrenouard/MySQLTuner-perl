@@ -1,6 +1,7 @@
 # Supported Database Versions
 
-Authoritative compatibility matrix, lifecycle cycles, and database privilege requirements for MySQLTuner.
+Authoritative compatibility matrix, lifecycle cycles, and database privilege
+requirements for MySQLTuner.
 
 ## Engine and Platform Compatibility
 
@@ -17,8 +18,9 @@ Authoritative compatibility matrix, lifecycle cycles, and database privilege req
 
 ## Synchronized Release Cycles
 
-Release cycles below reflect `build/ci_matrix.json` and `mysqltuner.pl` (`@SUPPORTED_LTS_VERSIONS` and
-`@SUPPORTED_SHORT_TERM_VERSIONS`). Run `make sync_versions` to propagate matrix updates.
+Release cycles below reflect `build/ci_matrix.json` and `mysqltuner.pl`
+(`@SUPPORTED_LTS_VERSIONS` and `@SUPPORTED_SHORT_TERM_VERSIONS`). Run
+`make sync_versions` to propagate matrix updates.
 
 | Engine | LTS Cycles | Legacy Supported | Short-Term Support | CI Default Targets |
 | :--- | :--- | :--- | :--- | :--- |
@@ -39,19 +41,24 @@ Release cycles below reflect `build/ci_matrix.json` and `mysqltuner.pl` (`@SUPPO
 | Requirement | Minimum | Notes |
 | :--- | :--- | :--- |
 | Perl Interpreter | `5.005`+ (`5.8`+ recommended) | Uses Perl Core modules only; zero CPAN dependencies |
-| Database Uptime | `>= 24` hours (`86400` seconds) | Below 24h triggers inaccurate-recommendation notice |
+| Database Uptime | `>= 24` hours (`86400` seconds) | Below 24 hours triggers inaccurate-recommendation notice |
 | Architecture | 64-bit recommended | 32-bit OS with `> 2 GB` RAM raises instability warning |
 
 ## MySQL Lifecycle Matrix
+
+[mysql_support.md](https://github.com/major/MySQLTuner-perl/blob/master/mysql_support.md)
 
 <!-- INCLUDE_SOURCE: mysql_support.md -->
 
 ## MariaDB Lifecycle Matrix
 
+[mariadb_support.md](https://github.com/major/MySQLTuner-perl/blob/master/mariadb_support.md)
+
 <!-- INCLUDE_SOURCE: mariadb_support.md -->
 
 ## Related Documentation
 
-- CLI flags and execution modes: [CLI Options and Environment](../cli-and-scripts/cli-options.md)
+- CLI flags and execution modes:
+  [CLI Options and Environment](../cli-and-scripts/cli-options.md)
 - Version divergence analysis:
   [Health Score and Version Rift](../../04-explanation/deep-dives/health-score-and-version-rift.md)

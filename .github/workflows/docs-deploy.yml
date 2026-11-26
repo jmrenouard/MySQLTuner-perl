@@ -4,6 +4,28 @@ on:
   push:
     branches:
       - master
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - ".markdownlint.json"
+      - ".vale.ini"
+      - ".vale/**"
+      - "build/mkdocs_hooks.py"
+      - "build/check_diataxis_docs.py"
+      - "build/docs_htaccess"
+      - ".github/workflows/docs-ci.yml"
+      - ".github/workflows/docs-deploy.yml"
+      - "tests/unit_mkdocs_diataxis.t"
+      - "tests/unit_docs_tutorials_howtos.t"
+      - "tests/unit_docs_tutorials_howtos.py"
+      - "releases/**"
+      - "CURRENT_VERSION.txt"
+      - "mysql_support.md"
+      - "mariadb_support.md"
+      - "FEATURES.md"
+      - "USAGE.md"
+      - "SECURITY.md"
   release:
     types: [published]
   workflow_dispatch:
@@ -51,8 +73,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-docs.txt
 
-      - name: Run Diataxis and STE validator
-        run: python3 build/check_diataxis_docs.py docs --strict
+      - name: Run documentation structure, link, and style validator
+        run: python3 build/check_diataxis_docs.py docs --strict --mkdocs-config mkdocs.yml
 
       - name: Run markdownlint-cli2
         uses: DavidAnson/markdownlint-cli2-action@05f32210e84442804257b2a6f20b273450ec8265 # v19

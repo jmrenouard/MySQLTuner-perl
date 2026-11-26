@@ -1,6 +1,7 @@
 # MCP Server and Agent JSON API
 
-Protocol, tool schemas, resource URIs, safety guardrails, and `--agent-json` output contract for AI integrations.
+Protocol, tool schemas, resource URIs, safety guardrails, and `--agent-json`
+output contract for AI integrations.
 
 ## MCP Server Specification (`build/mcp_server.py`)
 
@@ -47,17 +48,21 @@ Protocol, tool schemas, resource URIs, safety guardrails, and `--agent-json` out
 
 ### SQL Sanitizer Rules (`sanitize_sql_statement`)
 
-- Strips `--`, `#`, and `/* ... */` comments; rejects unclosed `/*` comments and multiple statements (`;`).
-- Rejects destructive SQL keywords: `DROP`, `DELETE`, `TRUNCATE`, `INSERT`, `UPDATE`, `GRANT`, `REVOKE`, `CREATE`,
-  `REPLACE`, `EXECUTE`, `CALL`, `LOAD_FILE`, `LOAD DATA`, `INTO OUTFILE`, `INTO DUMPFILE`, `SHUTDOWN`, `KILL`, and
-  `FLUSH PRIVILEGES`.
-- Requires statement to start with one of: `SET GLOBAL`, `SET @@GLOBAL.`, `SET PERSIST`, `ALTER TABLE`,
-  `OPTIMIZE TABLE`, or `ANALYZE TABLE` (followed by whitespace for non-dot prefixes).
+- Strips `--`, `#`, and `/* ... */` comments; rejects unclosed `/*` comments and
+  multiple statements (`;`).
+- Rejects destructive keywords: `DROP`, `DELETE`, `TRUNCATE`, `INSERT`,
+  `UPDATE`, `GRANT`, `REVOKE`, `CREATE`, `REPLACE`, `EXECUTE`, `CALL`.
+- Also rejects `LOAD_FILE`, `LOAD DATA`, `INTO OUTFILE`, `INTO DUMPFILE`,
+  `SHUTDOWN`, `KILL`, and `FLUSH PRIVILEGES`.
+- Requires statements to start with `SET GLOBAL`, `SET @@GLOBAL.`,
+  `SET PERSIST`, `ALTER TABLE`, `OPTIMIZE TABLE`, or `ANALYZE TABLE` (with
+  whitespace after non-dot prefixes).
 
 ## `--agent-json` Output Contract (`mysqltuner.pl`)
 
-Executing `perl mysqltuner.pl --agent-json` emits a single JSON object `{ "findings": [...] }` generated from `@adjvars`
-while excluding dot-delimited sysctl or Galera keys.
+Executing `perl mysqltuner.pl --agent-json` emits a single JSON object
+`{ "findings": [...] }` generated from `@adjvars` while excluding dot-delimited
+sysctl or Galera keys.
 
 ### Finding Object Schema
 
@@ -96,4 +101,5 @@ while excluding dot-delimited sysctl or Galera keys.
 
 - AI agent subsystem design:
   [AI Agent Architecture](../../04-explanation/architecture-overview/ai-agent-architecture.md)
-- Guided MCP sandbox lab: [AI and MCP Sandbox Lab](../../01-tutorials/02-ai-mcp-sandbox-lab.md)
+- Guided MCP sandbox lab:
+  [AI and MCP Sandbox Lab](../../01-tutorials/02-ai-mcp-sandbox-lab.md)

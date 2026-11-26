@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # ===========================================================================
 # Script:      build/check_diataxis_docs.py
-# Description: Zero-dependency validator for Diataxis documentation layout,
-#              internal relative links, quadrant governance heuristics, and
-#              ASD-STE100 Issue 9 procedural rules in 02-how-to-guides/.
+# Description: Zero-dependency validator for 4-section documentation layout,
+#              internal relative links, section governance, MkDocs config,
+#              line-length/paragraph readability, Git-native GFM checks, and
+#              procedural rules in 02-how-to-guides/.
 # Author:      Jean-Marie Renouard / Antigravity
-# Usage:       python3 build/check_diataxis_docs.py docs [--strict]
+# Usage:       python3 build/check_diataxis_docs.py docs [--strict] [--mkdocs-config mkdocs.yml]
 # ===========================================================================
 
 from __future__ import annotations
@@ -15,7 +16,13 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from urllib.parse import unquote
+
+try:
+    import yaml
+except ImportError:
+    yaml = None  # type: ignore[assignment]
 
 REQUIRED_QUADRANTS = (
     "01-tutorials",
@@ -26,36 +33,77 @@ REQUIRED_QUADRANTS = (
 
 FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
 LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\n]+)\)")
+LINK_FULL_RE = re.compile(r"(!?\[[^\]]*\])\(([^)\n]+)\)")
 HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*$")
+PARAGRAPH_HEADING_RE = re.compile(r"^#{1,6}\s")
 TABLE_ROW_RE = re.compile(r"^\s*\|.*\|\s*$")
+PARAGRAPH_TABLE_RE = re.compile(r"^\s*\|")
 LIST_ITEM_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+\S+")
+PARAGRAPH_LIST_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+")
+HR_RE = re.compile(r"^\s*(?:[-*_]\s*){3,}$")
+LINK_REF_DEF_RE = re.compile(r"^\s*\[[^\]]+\]:\s")
+BLOCKQUOTE_RE = re.compile(r"^\s*>")
+BARE_URL_RE = re.compile(r"https?://[^\s)>]+")
+ABBREV_RE = re.compile(r"\b(?:e\.g|i\.e|etc|vs|cf)\.", re.IGNORECASE)
+SENTENCE_SPLIT_RE = re.compile(r"(?<!\.)[.!?]+(?:['\")\]]*)(?=\s|$)")
 ADMONITION_START_RE = re.compile(r"^(?:!!!|\?\?\?\+?)\s+([A-Za-z0-9_-]+)(?:\s+.*)?$")
 EXTERNAL_SCHEME_RE = re.compile(r"^(?:https?|mailto|ftp|tel|data|javascript):", re.IGNORECASE)
 
-HOWTO_VALIDATION_RE = re.compile(
-    r"\b(?:validat(?:e|es|ed|ing|ion)|verif(?:y|ies|ied|ication)|check)\b",
+LOCALE_DIR_RE = re.compile(r"^[a-z]{2}(?:-[A-Z]{2})?$")
+
+METHODOLOGY_REF_RE = re.compile(
+    r"\b(?:di[aá]taxis|asd[-\s]?st[ef]100|st[ef][-\s]?100|simplified\s+technical\s+english|fran[cç]ais\s+technique\s+simplifi[eé]|quadrants?)\b",
     re.IGNORECASE,
 )
+
+INTERNAL_REGISTER_FILENAMES = frozenset({"action_logbook.md", "rca_register.md"})
+INTERNAL_REGISTER_REF_RE = re.compile(
+    r"\b(?:"
+    r"ACTION_LOGBOOK(?:\.md)?"
+    r"|RCA_REGISTER(?:\.md)?"
+    r"|ACT-\d+"
+    r"|RCA-\d+"
+    r"|IMP-\d+"
+    r"|APP-\d+"
+    r"|IDEA-\d+"
+    r"|action\s+log(?:book)?"
+    r"|rca\s+register"
+    r"|registre\s+(?:des\s+)?rca"
+    r"|journal\s+(?:d['’]|des\s+)actions"
+    r")\b",
+    re.IGNORECASE,
+)
+
+MKDOCS_ADMONITION_RE = re.compile(r"^\s*!!!\s+")
+MKDOCS_COLLAPSIBLE_RE = re.compile(r"^\s*\?\?\?\+?\s+")
+MKDOCS_TABBED_RE = re.compile(r'^\s*===\s+"')
+MKDOCS_SNIPPET_TOKEN = "--8<--"
+
+HOWTO_VALIDATION_RE = re.compile(
+    r"\b(?:validat(?:e|es|ed|ing|ion)|verif(?:y|ies|ied|ication)|vérif(?:ier|ication)|contrôle)\b",
+    re.IGNORECASE,
+)
+HOWTO_HEADING_CHECK_RE = re.compile(r"\bcheck\b", re.IGNORECASE)
 HOWTO_ROLLBACK_RE = re.compile(
-    r"\b(?:rollback|revert|backout|back-out|undo)\b",
+    r"\b(?:rollback|revert|backout|back-out|undo|retour\s+arrière|annulation)\b",
     re.IGNORECASE,
 )
 HOWTO_THEORY_HEADING_RE = re.compile(
-    r"\b(?:why|architecture|theory|explanation|context|background)\b",
+    r"\b(?:why|architecture|theory|théorie|explication|explanation|context|contexte|background|pourquoi)\b",
     re.IGNORECASE,
 )
 
 REF_TUTORIAL_PHRASING_RE = re.compile(
-    r"(?:\bin\s+this\s+tutorial\b|\blet['’]?s\b|\blet\s+us\b|\bstep\s+1\b)",
+    r"(?:\bin\s+this\s+tutorial\b|\blet['’]?s\b|\blet\s+us\b|\bstep\s+1\b|\bdans\s+ce\s+tutoriel\b|\bétape\s+1\b)",
     re.IGNORECASE,
 )
 
 EXPLANATION_PROCEDURAL_HEADING_RE = re.compile(
-    r"\b(?:step\s+\d+|rollback|remediation|prerequisites|procedure)\b",
+    r"\b(?:step\s+\d+|rollback|remediation|prerequisites|prérequis|étape\s+\d+|procédure)\b",
     re.IGNORECASE,
 )
 
-# ASD-STE100 Issue 9 procedural checks
+# Procedural writing checks for 02-how-to-guides/
 ING_APPROVED = frozenset(
     {
         "mating",
@@ -146,7 +194,7 @@ NON_PARTICIPLE_ED_EN = frozenset(
     }
 )
 
-# STE Rule 3.6 permits past participles after 'be' ONLY when describing a state/condition
+# Past participles permitted after 'be' ONLY when describing a state/condition
 CONDITION_ADJECTIVES = frozenset(
     {
         "absent",
@@ -315,6 +363,53 @@ class Finding:
         return f"[{self.severity}] {loc}: {self.message}"
 
 
+if yaml is not None:
+
+    class _MkDocsSafeLoader(yaml.SafeLoader):
+        """Safe YAML loader supporting MkDocs !!python/name: tags."""
+
+    def _construct_python_name(
+        loader: yaml.SafeLoader, tag_suffix: str, node: yaml.Node
+    ) -> str:
+        return tag_suffix
+
+    _MkDocsSafeLoader.add_multi_constructor(
+        "tag:yaml.org,2002:python/name:", _construct_python_name
+    )
+
+
+def _load_mkdocs_yaml(path: Path) -> dict[str, Any]:
+    """Load mkdocs.yml safely, resolving !!python/name: tags to their suffix strings."""
+    if yaml is None:
+        raise RuntimeError("PyYAML is unavailable")
+    raw = path.read_text(encoding="utf-8")
+    data = yaml.load(raw, Loader=_MkDocsSafeLoader)
+    return data if isinstance(data, dict) else {}
+
+
+def _extract_top_level_blocks(raw_text: str) -> dict[str, list[str]]:
+    """Split top-level YAML sections for zero-dependency fallback checking."""
+    blocks: dict[str, list[str]] = {}
+    current_key: str | None = None
+    for raw_line in raw_text.splitlines():
+        stripped = raw_line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if not raw_line[0].isspace():
+            m = re.match(r"^([A-Za-z0-9_.-]+)\s*:(.*)$", raw_line)
+            if m:
+                current_key = m.group(1)
+                blocks.setdefault(current_key, [])
+                rest = m.group(2).strip()
+                if rest and rest != "|":
+                    blocks[current_key].append(rest)
+            else:
+                current_key = None
+        elif current_key is not None:
+            blocks[current_key].append(raw_line)
+    return blocks
+
+
 def strip_inline_code(line: str) -> str:
     """Replace CommonMark inline code spans with single spaces."""
     if "`" not in line:
@@ -383,7 +478,7 @@ def extract_non_code_lines(text: str) -> list[tuple[int, str]]:
 
 
 def check_required_structure(docs_dir: Path) -> list[Finding]:
-    """Verify docs/index.md and all four Diataxis quadrant directories and index files."""
+    """Verify docs/index.md and all four section directories and index files."""
     findings: list[Finding] = []
     root_index = docs_dir / "index.md"
     if not root_index.is_file():
@@ -395,7 +490,7 @@ def check_required_structure(docs_dir: Path) -> list[Finding]:
         quadrant_dir = docs_dir / quadrant
         if not quadrant_dir.is_dir():
             findings.append(
-                Finding("ERROR", quadrant_dir, 0, f"Missing required quadrant directory '{quadrant}'.")
+                Finding("ERROR", quadrant_dir, 0, f"Missing required section directory '{quadrant}'.")
             )
             continue
         quadrant_index = quadrant_dir / "index.md"
@@ -428,6 +523,13 @@ def normalize_link_target(raw_target: str) -> str:
     return unquote(target.strip())
 
 
+def _resolve_link_target(md_file: Path, docs_dir: Path, target: str) -> Path:
+    """Resolve a normalized Markdown link path to an absolute filesystem path."""
+    if target.startswith("/"):
+        return (docs_dir / target.lstrip("/")).resolve()
+    return (md_file.parent / target).resolve()
+
+
 def check_relative_links(
     md_file: Path,
     docs_dir: Path,
@@ -443,10 +545,7 @@ def check_relative_links(
             if not target:
                 continue
 
-            if target.startswith("/"):
-                resolved = (docs_root / target.lstrip("/")).resolve()
-            else:
-                resolved = (md_file.parent / target).resolve()
+            resolved = _resolve_link_target(md_file, docs_root, target)
 
             try:
                 resolved.relative_to(docs_root)
@@ -476,12 +575,646 @@ def check_relative_links(
     return findings
 
 
+def check_no_methodology_references(md_file: Path, text: str) -> list[Finding]:
+    """Ensure Markdown documents contain zero banned methodology references."""
+    findings: list[Finding] = []
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        match = METHODOLOGY_REF_RE.search(line)
+        if match:
+            findings.append(
+                Finding(
+                    "ERROR",
+                    md_file,
+                    lineno,
+                    f"Forbidden methodology reference '{match.group(0)}' is not allowed in documentation.",
+                )
+            )
+    return findings
+
+
+def check_no_internal_register_references(md_file: Path, text: str) -> list[Finding]:
+    """Ensure published MkDocs pages contain zero Action Log or RCA Register references."""
+    findings: list[Finding] = []
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        match = INTERNAL_REGISTER_REF_RE.search(line)
+        if match:
+            findings.append(
+                Finding(
+                    "ERROR",
+                    md_file,
+                    lineno,
+                    f"Forbidden internal register reference '{match.group(0)}' is not allowed in published MkDocs documentation.",
+                )
+            )
+    return findings
+
+
+def _is_long_url_exempt(line: str) -> bool:
+    """Allow lines > 80 chars only when stripping one long URL/link target (> 40 chars) leaves <= 80 chars."""
+    tokens: list[str] = []
+
+    def _strip_link_target(match: re.Match[str]) -> str:
+        tokens.append(match.group(2).strip())
+        return f"{match.group(1)}()"
+
+    without_md_targets = LINK_FULL_RE.sub(_strip_link_target, line)
+
+    def _strip_bare_url(match: re.Match[str]) -> str:
+        tokens.append(match.group(0))
+        return ""
+
+    stripped = BARE_URL_RE.sub(_strip_bare_url, without_md_targets)
+    return len(stripped) <= 80 and sum(1 for tok in tokens if len(tok) > 40) == 1
+
+
+def _count_sentences(paragraph_lines: list[str]) -> int:
+    """Count sentences in a paragraph while avoiding false splits on decimals and inline code."""
+    para_text = " ".join(line.strip() for line in paragraph_lines)
+    cleaned = strip_inline_code(para_text)
+    cleaned = LINK_FULL_RE.sub(r"\1()", cleaned)
+    cleaned = ABBREV_RE.sub(lambda m: m.group(0).replace(".", ""), cleaned)
+    parts = [s.strip() for s in SENTENCE_SPLIT_RE.split(cleaned) if s.strip()]
+    return len(parts)
+
+
+def check_line_length_and_paragraphs(md_file: Path, text: str) -> list[Finding]:
+    """Flag lines exceeding 80 chars (with single long-URL exemption) and dense paragraphs."""
+    findings: list[Finding] = []
+    fence_char: str | None = None
+    fence_len = 0
+    paragraph_lines: list[str] = []
+    paragraph_start = 0
+
+    def _flush_paragraph() -> None:
+        nonlocal paragraph_lines, paragraph_start
+        if not paragraph_lines:
+            return
+        if len(paragraph_lines) > 4 or _count_sentences(paragraph_lines) > 3:
+            findings.append(
+                Finding(
+                    "WARN",
+                    md_file,
+                    paragraph_start,
+                    "Dense paragraph (wall of text): split into short paragraphs (<= 3 sentences / <= 4 lines) or use bullet points.",
+                )
+            )
+        paragraph_lines = []
+        paragraph_start = 0
+
+    for lineno, raw_line in enumerate(text.splitlines(), start=1):
+        if fence_char is not None:
+            if re.match(rf"^\s*{re.escape(fence_char)}{{{fence_len},}}\s*$", raw_line):
+                fence_char = None
+                fence_len = 0
+            continue
+
+        fence_match = FENCE_RE.match(raw_line)
+        if fence_match:
+            _flush_paragraph()
+            marker = fence_match.group(1)
+            fence_char = marker[0]
+            fence_len = len(marker)
+            continue
+
+        is_blank = not raw_line.strip()
+        is_heading = bool(PARAGRAPH_HEADING_RE.match(raw_line))
+        is_table = bool(PARAGRAPH_TABLE_RE.match(raw_line))
+        is_hr = bool(HR_RE.match(raw_line))
+        is_link_ref = bool(LINK_REF_DEF_RE.match(raw_line))
+        is_list = bool(PARAGRAPH_LIST_RE.match(raw_line))
+        is_blockquote = bool(BLOCKQUOTE_RE.match(raw_line))
+
+        if not (is_heading or is_table or is_hr or is_link_ref):
+            if len(raw_line) > 80 and not _is_long_url_exempt(raw_line):
+                findings.append(
+                    Finding(
+                        "WARN",
+                        md_file,
+                        lineno,
+                        f"Line exceeds 80 characters ({len(raw_line)} > 80).",
+                    )
+                )
+
+        if is_blank or is_heading or is_list or is_blockquote or is_table or is_hr or is_link_ref:
+            _flush_paragraph()
+        else:
+            if not paragraph_lines:
+                paragraph_start = lineno
+            paragraph_lines.append(raw_line)
+
+    _flush_paragraph()
+    return findings
+
+
+def check_git_readability(
+    md_file: Path,
+    non_code_lines: list[tuple[int, str]],
+) -> list[Finding]:
+    """Flag MkDocs-only syntax and non-Git-native internal Markdown links."""
+    findings: list[Finding] = []
+    for lineno, line in non_code_lines:
+        if MKDOCS_ADMONITION_RE.match(line):
+            findings.append(
+                Finding(
+                    "WARN",
+                    md_file,
+                    lineno,
+                    "MkDocs admonition syntax ('!!!') is not Git-native GFM; use **NOTE:**/**CAUTION:**/**WARNING:**.",
+                )
+            )
+        if MKDOCS_COLLAPSIBLE_RE.match(line):
+            findings.append(
+                Finding(
+                    "WARN",
+                    md_file,
+                    lineno,
+                    "MkDocs collapsible block syntax ('???') is not Git-native GFM.",
+                )
+            )
+        if MKDOCS_TABBED_RE.match(line):
+            findings.append(
+                Finding(
+                    "WARN",
+                    md_file,
+                    lineno,
+                    "MkDocs tabbed syntax ('===') is not Git-native GFM.",
+                )
+            )
+        if MKDOCS_SNIPPET_TOKEN in line:
+            findings.append(
+                Finding(
+                    "WARN",
+                    md_file,
+                    lineno,
+                    "MkDocs snippet include ('--8<--') is not Git-native GFM.",
+                )
+            )
+
+        for match in LINK_RE.finditer(line):
+            raw_target = match.group(1).strip()
+            target = normalize_link_target(raw_target)
+            if not target:
+                continue
+            if target.startswith("/"):
+                findings.append(
+                    Finding(
+                        "WARN",
+                        md_file,
+                        lineno,
+                        f"Root-absolute internal link '{raw_target}' is not Git-native; use a relative .md path.",
+                    )
+                )
+                continue
+
+            suffix = Path(target.rstrip("/")).suffix.lower()
+            if target.endswith("/") or not suffix or suffix in {".html", ".htm"}:
+                findings.append(
+                    Finding(
+                        "WARN",
+                        md_file,
+                        lineno,
+                        f"Internal link '{raw_target}' should target an explicit .md file for Git-native readability.",
+                    )
+                )
+    return findings
+
+
+def _iter_yaml_strings(value: Any) -> list[str]:
+    """Collect all string scalars recursively from nested YAML structures."""
+    items: list[str] = []
+    if isinstance(value, str):
+        items.append(value)
+    elif isinstance(value, list):
+        for entry in value:
+            items.extend(_iter_yaml_strings(entry))
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            if isinstance(k, str):
+                items.append(k)
+            items.extend(_iter_yaml_strings(v))
+    return items
+
+
+def _check_mkdocs_config_fallback(mkdocs_path: Path, raw_text: str) -> list[Finding]:
+    """Fallback mkdocs.yml validator when PyYAML is unavailable in minimal chroot."""
+    findings: list[Finding] = []
+    blocks = _extract_top_level_blocks(raw_text)
+
+    for key in ("site_name", "site_description", "nav"):
+        block_text = "\n".join(blocks.get(key, []))
+        m_ref = METHODOLOGY_REF_RE.search(block_text)
+        if m_ref:
+            findings.append(
+                Finding(
+                    "ERROR",
+                    mkdocs_path,
+                    0,
+                    f"mkdocs.yml '{key}' contains forbidden methodology reference '{m_ref.group(0)}'.",
+                )
+            )
+        r_ref = INTERNAL_REGISTER_REF_RE.search(block_text)
+        if r_ref:
+            findings.append(
+                Finding(
+                    "ERROR",
+                    mkdocs_path,
+                    0,
+                    f"mkdocs.yml '{key}' contains forbidden internal register reference '{r_ref.group(0)}'.",
+                )
+            )
+
+    exclude_text = "\n".join(blocks.get("exclude_docs", []))
+    if "ACTION_LOGBOOK.md" not in exclude_text or "RCA_REGISTER.md" not in exclude_text:
+        findings.append(
+            Finding(
+                "ERROR",
+                mkdocs_path,
+                0,
+                "mkdocs.yml must exclude ACTION_LOGBOOK.md and RCA_REGISTER.md via exclude_docs.",
+            )
+        )
+
+    ext_text = "\n".join(blocks.get("markdown_extensions", []))
+    has_mermaid = (
+        "pymdownx.superfences" in ext_text
+        and "custom_fences:" in ext_text
+        and re.search(r"\bname:\s*mermaid\b", ext_text) is not None
+        and re.search(r"\bclass:\s*mermaid\b", ext_text) is not None
+        and "fence_code_format" in ext_text
+    )
+    if not has_mermaid:
+        findings.append(
+            Finding(
+                "ERROR",
+                mkdocs_path,
+                0,
+                "mkdocs.yml must configure pymdownx.superfences custom_fences for Mermaid (name: mermaid, class: mermaid, format: !!python/name:pymdownx.superfences.fence_code_format).",
+            )
+        )
+
+    for banned_ext in ("pymdownx.snippets", "pymdownx.tabbed"):
+        if re.search(rf"^\s*-\s*{re.escape(banned_ext)}(?:\s*:|\s*$)", ext_text, re.M):
+            findings.append(
+                Finding(
+                    "ERROR",
+                    mkdocs_path,
+                    0,
+                    f"mkdocs.yml must not enable '{banned_ext}' (breaks Git-native GFM readability).",
+                )
+            )
+
+    extra_text = "\n".join(blocks.get("extra", []))
+    if not re.search(r"\bprovider:\s*mike\b", extra_text):
+        findings.append(
+            Finding(
+                "ERROR",
+                mkdocs_path,
+                0,
+                "mkdocs.yml must configure extra.version.provider: mike.",
+            )
+        )
+    if not re.search(r"\balias:\s*true\b", extra_text):
+        findings.append(
+            Finding(
+                "ERROR",
+                mkdocs_path,
+                0,
+                "mkdocs.yml must configure extra.version.alias: true.",
+            )
+        )
+
+    return findings
+
+
+def check_mkdocs_config(
+    mkdocs_path: Path,
+    expected_locales: list[str] | None = None,
+) -> list[Finding]:
+    """Validate mkdocs.yml against methodology-free, register-free, Mermaid, mike, and GFM contracts."""
+    if not mkdocs_path.is_file():
+        return [
+            Finding("ERROR", mkdocs_path, 0, f"MkDocs config file not found: {mkdocs_path}")
+        ]
+
+    raw_text = mkdocs_path.read_text(encoding="utf-8")
+    if yaml is None:
+        return _check_mkdocs_config_fallback(mkdocs_path, raw_text)
+
+    try:
+        cfg = _load_mkdocs_yaml(mkdocs_path)
+    except Exception as exc:  # noqa: BLE001
+        return [
+            Finding("ERROR", mkdocs_path, 0, f"Failed to parse MkDocs YAML: {exc}")
+        ]
+
+    findings: list[Finding] = []
+
+    # (a) Zero banned methodology or internal register references in metadata and nav.
+    for key in ("site_name", "site_description"):
+        val = cfg.get(key)
+        if isinstance(val, str):
+            match = METHODOLOGY_REF_RE.search(val)
+            if match:
+                findings.append(
+                    Finding(
+                        "ERROR",
+                        mkdocs_path,
+                        0,
+                        f"mkdocs.yml '{key}' contains forbidden methodology reference '{match.group(0)}'.",
+                    )
+                )
+            reg_match = INTERNAL_REGISTER_REF_RE.search(val)
+            if reg_match:
+                findings.append(
+                    Finding(
+                        "ERROR",
+                        mkdocs_path,
+                        0,
+                        f"mkdocs.yml '{key}' contains forbidden internal register reference '{reg_match.group(0)}'.",
+                    )
+                )
+
+    nav_cfg = cfg.get("nav")
+    if nav_cfg is not None:
+        for nav_str in _iter_yaml_strings(nav_cfg):
+            meth_match = METHODOLOGY_REF_RE.search(nav_str)
+            if meth_match:
+                findings.append(
+                    Finding(
+                        "ERROR",
+                        mkdocs_path,
+                        0,
+                        f"mkdocs.yml 'nav' contains forbidden methodology reference '{meth_match.group(0)}'.",
+                    )
+                )
+            reg_match = INTERNAL_REGISTER_REF_RE.search(nav_str)
+            if reg_match:
+                findings.append(
+                    Finding(
+                        "ERROR",
+                        mkdocs_path,
+                        0,
+                        f"mkdocs.yml 'nav' contains forbidden internal register reference '{reg_match.group(0)}'.",
+                    )
+                )
+
+    exclude_raw = cfg.get("exclude_docs")
+    if isinstance(exclude_raw, str):
+        exclude_text = exclude_raw
+    elif isinstance(exclude_raw, list):
+        exclude_text = "\n".join(str(item) for item in exclude_raw)
+    else:
+        exclude_text = ""
+
+    if "ACTION_LOGBOOK.md" not in exclude_text or "RCA_REGISTER.md" not in exclude_text:
+        findings.append(
+            Finding(
+                "ERROR",
+                mkdocs_path,
+                0,
+                "mkdocs.yml must exclude ACTION_LOGBOOK.md and RCA_REGISTER.md via exclude_docs.",
+            )
+        )
+
+    # (b) Mermaid custom_fences and ban on non-GFM extensions (pymdownx.snippets, pymdownx.tabbed).
+    extensions = cfg.get("markdown_extensions")
+    has_mermaid_fence = False
+    banned_extensions = {"pymdownx.snippets", "pymdownx.tabbed"}
+    if isinstance(extensions, list):
+        for ext in extensions:
+            ext_names: list[str] = []
+            if isinstance(ext, str):
+                ext_names.append(ext)
+            elif isinstance(ext, dict):
+                ext_names.extend(str(k) for k in ext.keys())
+
+            for ext_name in ext_names:
+                if ext_name in banned_extensions:
+                    findings.append(
+                        Finding(
+                            "ERROR",
+                            mkdocs_path,
+                            0,
+                            f"mkdocs.yml must not enable '{ext_name}' (breaks Git-native GFM readability).",
+                        )
+                    )
+
+            if not (isinstance(ext, dict) and "pymdownx.superfences" in ext):
+                continue
+            superfences_cfg = ext.get("pymdownx.superfences")
+            if not isinstance(superfences_cfg, dict):
+                continue
+            custom_fences = superfences_cfg.get("custom_fences")
+            if not isinstance(custom_fences, list):
+                continue
+            for fence in custom_fences:
+                if not isinstance(fence, dict):
+                    continue
+                if (
+                    fence.get("name") == "mermaid"
+                    and fence.get("class") == "mermaid"
+                    and "fence_code_format" in str(fence.get("format", ""))
+                ):
+                    has_mermaid_fence = True
+                    break
+
+    if not has_mermaid_fence:
+        findings.append(
+            Finding(
+                "ERROR",
+                mkdocs_path,
+                0,
+                "mkdocs.yml must configure pymdownx.superfences custom_fences for Mermaid (name: mermaid, class: mermaid, format: !!python/name:pymdownx.superfences.fence_code_format).",
+            )
+        )
+
+    # (c) Version navigator provider must be mike with alias: true.
+    extra = cfg.get("extra")
+    version_cfg = extra.get("version") if isinstance(extra, dict) else None
+    provider = version_cfg.get("provider") if isinstance(version_cfg, dict) else None
+    alias_val = version_cfg.get("alias") if isinstance(version_cfg, dict) else None
+    if provider != "mike":
+        findings.append(
+            Finding(
+                "ERROR",
+                mkdocs_path,
+                0,
+                "mkdocs.yml must configure extra.version.provider: mike.",
+            )
+        )
+    if alias_val is not True:
+        findings.append(
+            Finding(
+                "ERROR",
+                mkdocs_path,
+                0,
+                "mkdocs.yml must configure extra.version.alias: true.",
+            )
+        )
+
+    # (d) Multilingual i18n plugin contract when expected_locales is provided.
+    if expected_locales:
+        plugins = cfg.get("plugins")
+        i18n_cfg: dict[str, Any] | None = None
+        if isinstance(plugins, list):
+            for plugin in plugins:
+                if isinstance(plugin, dict) and isinstance(plugin.get("i18n"), dict):
+                    i18n_cfg = plugin["i18n"]
+                    break
+        elif isinstance(plugins, dict) and isinstance(plugins.get("i18n"), dict):
+            i18n_cfg = plugins["i18n"]
+
+        if i18n_cfg is None:
+            findings.append(
+                Finding(
+                    "ERROR",
+                    mkdocs_path,
+                    0,
+                    "Multilingual mkdocs.yml must configure the i18n plugin.",
+                )
+            )
+        else:
+            if i18n_cfg.get("docs_structure") != "folder":
+                findings.append(
+                    Finding(
+                        "ERROR",
+                        mkdocs_path,
+                        0,
+                        "mkdocs.yml i18n plugin must set docs_structure: folder.",
+                    )
+                )
+            if i18n_cfg.get("fallback_to_default") is not False:
+                findings.append(
+                    Finding(
+                        "ERROR",
+                        mkdocs_path,
+                        0,
+                        "mkdocs.yml i18n plugin must set fallback_to_default: false.",
+                    )
+                )
+            if i18n_cfg.get("reconfigure_material") is not True:
+                findings.append(
+                    Finding(
+                        "ERROR",
+                        mkdocs_path,
+                        0,
+                        "mkdocs.yml i18n plugin must set reconfigure_material: true.",
+                    )
+                )
+
+            configured_locales: set[str] = set()
+            languages = i18n_cfg.get("languages")
+            if isinstance(languages, list):
+                for entry in languages:
+                    if isinstance(entry, dict) and entry.get("locale"):
+                        configured_locales.add(str(entry["locale"]))
+            elif isinstance(languages, dict):
+                configured_locales.update(str(k) for k in languages.keys())
+
+            missing_locales = [loc for loc in expected_locales if loc not in configured_locales]
+            if missing_locales:
+                findings.append(
+                    Finding(
+                        "ERROR",
+                        mkdocs_path,
+                        0,
+                        f"mkdocs.yml i18n.languages is missing locale(s): {', '.join(missing_locales)}.",
+                    )
+                )
+
+    return findings
+
+
+def detect_locale_dirs(docs_dir: Path) -> list[Path]:
+    """Detect isolated locale subdirectories under docs_dir for multilingual trees."""
+    if (docs_dir / "index.md").is_file() or not docs_dir.is_dir():
+        return []
+    candidates = sorted(
+        child
+        for child in docs_dir.iterdir()
+        if child.is_dir() and LOCALE_DIR_RE.match(child.name)
+    )
+    if not candidates:
+        return []
+    if len(candidates) >= 2 or any((c / "01-tutorials").is_dir() for c in candidates):
+        return candidates
+    return []
+
+
+def check_cross_locale_links(
+    md_file: Path,
+    current_locale: Path,
+    locale_dirs: list[Path],
+    non_code_lines: list[tuple[int, str]],
+) -> list[Finding]:
+    """Ensure relative links inside one locale tree never resolve inside another locale tree."""
+    findings: list[Finding] = []
+    current_resolved = current_locale.resolve()
+    other_locales = [ld.resolve() for ld in locale_dirs if ld.resolve() != current_resolved]
+    if not other_locales:
+        return findings
+
+    for lineno, line in non_code_lines:
+        for match in LINK_RE.finditer(line):
+            target = normalize_link_target(match.group(1))
+            if not target:
+                continue
+            resolved = _resolve_link_target(md_file, current_locale, target)
+            for other_locale in other_locales:
+                if resolved == other_locale or resolved.is_relative_to(other_locale):
+                    findings.append(
+                        Finding(
+                            "ERROR",
+                            md_file,
+                            lineno,
+                            f"Cross-locale link '{match.group(1).strip()}' crosses from '{current_locale.name}/' into '{other_locale.name}/'.",
+                        )
+                    )
+                    break
+    return findings
+
+
+def check_locale_parity(locale_dirs: list[Path]) -> list[Finding]:
+    """Warn when a page exists in one locale directory but is missing in another."""
+    if len(locale_dirs) < 2:
+        return []
+
+    structural_indexes = {"index.md", *(f"{section}/index.md" for section in REQUIRED_QUADRANTS)}
+    locale_files: dict[Path, set[str]] = {}
+    all_paths: set[str] = set()
+    for locale_dir in locale_dirs:
+        rel_set = {
+            path.relative_to(locale_dir).as_posix()
+            for path in locale_dir.rglob("*.md")
+            if path.name.lower() not in INTERNAL_REGISTER_FILENAMES
+        }
+        locale_files[locale_dir] = rel_set
+        all_paths.update(rel_set)
+
+    findings: list[Finding] = []
+    for locale_dir in locale_dirs:
+        present = locale_files[locale_dir]
+        for rel_path in sorted(all_paths):
+            if rel_path in structural_indexes:
+                continue
+            if rel_path not in present:
+                findings.append(
+                    Finding(
+                        "WARN",
+                        locale_dir / rel_path,
+                        0,
+                        f"Locale parity mismatch: '{rel_path}' exists in another locale but is missing in '{locale_dir.name}/'.",
+                    )
+                )
+    return findings
+
+
 def check_quadrant_governance(
     md_file: Path,
     docs_dir: Path,
     non_code_lines: list[tuple[int, str]],
 ) -> list[Finding]:
-    """Check Diataxis genre separation heuristics on non-index quadrant pages."""
+    """Check genre separation heuristics on non-index section pages."""
     if md_file.name.lower() == "index.md":
         return []
 
@@ -500,7 +1233,10 @@ def check_quadrant_governance(
     full_text = "\n".join(line for _, line in non_code_lines)
 
     if quadrant == "02-how-to-guides":
-        if not HOWTO_VALIDATION_RE.search(full_text):
+        has_validation = bool(HOWTO_VALIDATION_RE.search(full_text)) or any(
+            HOWTO_HEADING_CHECK_RE.search(heading) for _, heading in headings
+        )
+        if not has_validation:
             findings.append(
                 Finding(
                     "WARN",
@@ -569,7 +1305,7 @@ def check_quadrant_governance(
 
 
 def _strip_ste_noise(text: str) -> str:
-    """Mask non-prose Markdown constructs prior to ASD-STE100 analysis."""
+    """Mask non-prose Markdown constructs prior to procedural prose analysis."""
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = re.sub(r"\A---\n.*?\n---(?:\n|\Z)", "", text, flags=re.DOTALL)
     text = re.sub(r"<!--.*?-->", " ", text, flags=re.DOTALL)
@@ -584,7 +1320,7 @@ def _strip_ste_noise(text: str) -> str:
 
 
 def _count_ste_words(sentence: str) -> int:
-    """Count words using ASD-STE100 Issue 9 Section 8 rules."""
+    """Count words in a procedural sentence."""
     s = sentence
     for _ in range(3):
         updated = re.sub(r"\([^()]*\)", " PAREN ", s)
@@ -619,7 +1355,7 @@ def _check_ste_sentence(
     is_descriptive: bool,
     findings: list[Finding],
 ) -> None:
-    """Validate one sentence against ASD-STE100 Issue 9 procedural constraints."""
+    """Validate one sentence against procedural writing constraints."""
     max_words = 25 if is_descriptive else 20
     word_count = _count_ste_words(sent)
     head = sent if len(sent) <= 60 else sent[:57] + "..."
@@ -743,7 +1479,7 @@ def _check_ste_sentence(
 
 
 def check_ste_procedural(md_file: Path, raw_text: str) -> list[Finding]:
-    """Validate non-index files under 02-how-to-guides/ against ASD-STE100 Issue 9."""
+    """Validate non-index files under 02-how-to-guides/ against procedural rules."""
     findings: list[Finding] = []
     stripped = _strip_ste_noise(raw_text)
 
@@ -832,25 +1568,87 @@ def check_ste_procedural(md_file: Path, raw_text: str) -> list[Finding]:
     return findings
 
 
-def validate_docs(docs_dir: Path, strict: bool = False) -> tuple[list[Finding], int]:
-    """Run all Diataxis structure, link, governance, and STE checks across docs_dir."""
+def _validate_markdown_file(
+    md_file: Path,
+    base_dir: Path,
+    locale_dirs: list[Path] | None = None,
+) -> list[Finding]:
+    """Run all per-file validation checks on a single Markdown file."""
+    text = md_file.read_text(encoding="utf-8")
+    non_code_lines = extract_non_code_lines(text)
+    file_findings: list[Finding] = []
+    file_findings.extend(check_relative_links(md_file, base_dir, non_code_lines))
+    if locale_dirs:
+        file_findings.extend(
+            check_cross_locale_links(md_file, base_dir, locale_dirs, non_code_lines)
+        )
+    file_findings.extend(check_quadrant_governance(md_file, base_dir, non_code_lines))
+    file_findings.extend(check_no_methodology_references(md_file, text))
+    file_findings.extend(check_no_internal_register_references(md_file, text))
+    file_findings.extend(check_line_length_and_paragraphs(md_file, text))
+    file_findings.extend(check_git_readability(md_file, non_code_lines))
+
+    rel_parts = md_file.relative_to(base_dir).parts
+    if (
+        len(rel_parts) >= 2
+        and rel_parts[0] == "02-how-to-guides"
+        and md_file.name.lower() != "index.md"
+    ):
+        file_findings.extend(check_ste_procedural(md_file, text))
+
+    return file_findings
+
+
+def validate_docs(
+    docs_dir: Path,
+    strict: bool = False,
+    mkdocs_config: Path | None = None,
+) -> tuple[list[Finding], int]:
+    """Run all structure, link, governance, readability, MkDocs config, and procedural checks."""
     findings: list[Finding] = []
-    findings.extend(check_required_structure(docs_dir))
+    locale_dirs = detect_locale_dirs(docs_dir)
+    expected_locales = [ld.name for ld in locale_dirs] if locale_dirs else None
+    md_files = sorted(
+        path
+        for path in docs_dir.rglob("*.md")
+        if path.name.lower() not in INTERNAL_REGISTER_FILENAMES
+    )
 
-    md_files = sorted(docs_dir.rglob("*.md"))
-    for md_file in md_files:
-        raw_text = md_file.read_text(encoding="utf-8")
-        non_code_lines = extract_non_code_lines(raw_text)
-        findings.extend(check_relative_links(md_file, docs_dir, non_code_lines))
-        findings.extend(check_quadrant_governance(md_file, docs_dir, non_code_lines))
+    if locale_dirs:
+        locale_map = {ld.resolve(): ld for ld in locale_dirs}
+        for locale_dir in locale_dirs:
+            findings.extend(check_required_structure(locale_dir))
 
-        rel_parts = md_file.relative_to(docs_dir).parts
-        if (
-            len(rel_parts) >= 2
-            and rel_parts[0] == "02-how-to-guides"
-            and md_file.name.lower() != "index.md"
-        ):
-            findings.extend(check_ste_procedural(md_file, raw_text))
+        for md_file in md_files:
+            resolved_md = md_file.resolve()
+            owning_locale = next(
+                (ld for ld_res, ld in locale_map.items() if resolved_md.is_relative_to(ld_res)),
+                None,
+            )
+            base_dir = owning_locale if owning_locale is not None else docs_dir
+            findings.extend(
+                _validate_markdown_file(
+                    md_file,
+                    base_dir,
+                    locale_dirs if owning_locale is not None else None,
+                )
+            )
+
+        findings.extend(check_locale_parity(locale_dirs))
+    else:
+        findings.extend(check_required_structure(docs_dir))
+        for md_file in md_files:
+            findings.extend(_validate_markdown_file(md_file, docs_dir))
+
+    target_mkdocs = mkdocs_config
+    if target_mkdocs is None:
+        candidate_mkdocs = docs_dir.parent / "mkdocs.yml"
+        if candidate_mkdocs.is_file():
+            target_mkdocs = candidate_mkdocs
+    if target_mkdocs is not None:
+        findings.extend(
+            check_mkdocs_config(target_mkdocs, expected_locales=expected_locales)
+        )
 
     if strict:
         findings = [
@@ -864,7 +1662,7 @@ def validate_docs(docs_dir: Path, strict: bool = False) -> tuple[list[Finding], 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser(
-        description="Validate Diataxis docs structure, relative links, governance, and STE compliance."
+        description="Validate 4-section docs structure, links, governance, MkDocs config, and procedural rules."
     )
     parser.add_argument(
         "docs_dir",
@@ -874,20 +1672,37 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="Treat governance warnings as errors.",
+        help="Treat governance and readability warnings as errors.",
+    )
+    parser.add_argument(
+        "--mkdocs-config",
+        type=Path,
+        default=None,
+        help="Path to mkdocs.yml to validate (auto-detected at <docs_dir>/../mkdocs.yml if omitted).",
     )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint."""
+    if (
+        getattr(sys.stdout, "encoding", None)
+        and sys.stdout.encoding.lower() not in ("utf-8", "utf8")
+        and hasattr(sys.stdout, "reconfigure")
+    ):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
     args = parse_args(argv)
     docs_dir = args.docs_dir.resolve()
     if not docs_dir.is_dir():
         print(f"[ERROR] Documentation directory does not exist: {docs_dir}", file=sys.stderr)
         return 1
 
-    findings, file_count = validate_docs(docs_dir=docs_dir, strict=args.strict)
+    findings, file_count = validate_docs(
+        docs_dir=docs_dir,
+        strict=args.strict,
+        mkdocs_config=args.mkdocs_config,
+    )
     for finding in findings:
         print(finding.format())
 

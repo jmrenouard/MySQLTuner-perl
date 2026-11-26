@@ -1,12 +1,12 @@
 # Capabilities and Diagnostic Indicators
 
-Technical specification of the indicator catalog, Weighted Health Score model, and storage engine coverage in
-`mysqltuner.pl`.
+Technical specification of the indicator catalog, Weighted Health Score model,
+and storage engine coverage in `mysqltuner.pl`.
 
 ## Indicator Catalog Summary (`--list-indicators`)
 
-Executing `perl mysqltuner.pl --list-indicators` exports the static catalog in offline JSON without connecting to a
-database (`version`: `2.9.4`).
+Executing `perl mysqltuner.pl --list-indicators` exports the static catalog in
+offline JSON without connecting to a database (`version`: `2.9.4`).
 
 | Metric | Count | JSON Field | Description |
 | :--- | :--- | :--- | :--- |
@@ -17,13 +17,14 @@ database (`version`: `2.9.4`).
 | Recommendations (`REC`) | `56` | `summary.rec` | Explicit advice items (`push_recommendation`) |
 | Feature Subroutines | `39` | `summary.features` | `34` report sections + `5` standalone audit subroutines |
 
-All indicators map to nine functional categories: `General`, `System`, `Storage`, `Modeling`, `Performance`,
-`Security`, `HA`, `Capacity`, and `Automation`.
+All indicators map to nine functional categories: `General`, `System`,
+`Storage`, `Modeling`, `Performance`, `Security`, `HA`, `Capacity`, and
+`Automation`.
 
 ## Weighted Health Score (`40 / 30 / 30` Model)
 
-`calculate_health_score()` computes `HealthScore` / `WeightedHealthScore` on a `0` to `100` scale from three weighted
-pillars (`HealthScoreDetails`).
+`calculate_health_score()` computes `HealthScore` / `WeightedHealthScore` on a
+`0` to `100` scale from three weighted pillars (`HealthScoreDetails`).
 
 | Pillar (Max) | Detail Key | Source Metric | Scoring Rules | Undefined Fallback |
 | :--- | :--- | :--- | :--- | :--- |
@@ -63,10 +64,13 @@ pillars (`HealthScoreDetails`).
 
 ## Feature Subroutines Catalog
 
+[FEATURES.md](https://github.com/major/MySQLTuner-perl/blob/master/FEATURES.md)
+
 <!-- INCLUDE_SOURCE: FEATURES.md -->
 
 ## Related Documentation
 
-- Threshold details and data files: [Thresholds and Data Files](../configuration/thresholds-and-files.md)
+- Threshold details and data files:
+  [Thresholds and Data Files](../configuration/thresholds-and-files.md)
 - Deep dive on Health Score scoring:
   [Health Score and Version Rift](../../04-explanation/deep-dives/health-score-and-version-rift.md)

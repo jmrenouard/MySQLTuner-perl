@@ -1,6 +1,7 @@
 # Reference
 
-Neutral technical specifications, configuration contracts, API schemas, and lookup matrices for MySQLTuner.
+Neutral technical specifications, configuration contracts, API schemas, and
+lookup matrices for MySQLTuner.
 
 ## Reference Catalog
 
@@ -14,8 +15,8 @@ Neutral technical specifications, configuration contracts, API schemas, and look
 | Troubleshooting Codes | [Diagnostic Alerts Matrix](troubleshooting-codes/diagnostic-alerts-matrix.md) | Finding-to-runbook remediation lookup table |
 | Releases Archive | [Release Notes Archive](releases/index.md) | Versioned release summaries and historical changelog index |
 
-## Cross-Quadrant Navigation
+## Cross-Section Navigation
 
 - Guided labs: [Tutorials](../01-tutorials/index.md)
-- Operational runbooks and procedures: [How-To Guides](../02-how-to-guides/index.md)
+- Operational runbooks: [How-To Guides](../02-how-to-guides/index.md)
 - Architecture overviews and ADRs: [Explanation](../04-explanation/index.md)

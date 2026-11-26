@@ -1,6 +1,7 @@
 # Diagnostic Alerts Matrix
 
-Mapping of MySQLTuner findings, status indicators, and audit alerts to thresholds and operational runbooks.
+Mapping of MySQLTuner findings, status indicators, and audit alerts to
+thresholds and operational runbooks.
 
 ## Performance and InnoDB Alerts
 
@@ -42,9 +43,11 @@ Mapping of MySQLTuner findings, status indicators, and audit alerts to threshold
 | `Skipping host network, process, filesystem, and kernel probes in container mode.` | `is_docker()` or `--container` active; caps RAM via cgroup v1/v2 | `INFO` | [Run Remote and Container Audits](../../02-how-to-guides/deployment/run-remote-and-container-audit.md) |
 | `sshpass is not installed. Password authentication for SSH will not work.` | `--ssh-password` specified without `sshpass` in `$PATH` | `WARN` | [Run Remote and Container Audits](../../02-how-to-guides/deployment/run-remote-and-container-audit.md) |
 | `There is less than 1,5 Gb of RAM` | Host or cgroup memory `< 1.5 GB` | `WARN` / `REC` | [Run Remote and Container Audits](../../02-how-to-guides/deployment/run-remote-and-container-audit.md) |
-| MkDocs / `mike` / Diátaxis validation failure | Broken relative links, STE errors, or missing `versions.json` | `WARN` / `ERROR` | [Publish Versioned Documentation](../../02-how-to-guides/deployment/publish-versioned-docs.md) |
+| MkDocs / `mike` / Docs validation failure | Broken relative links, procedural errors, or missing `versions.json` | `WARN` / `ERROR` | [Publish Versioned Documentation](../../02-how-to-guides/deployment/publish-versioned-docs.md) |
 
 ## Related Documentation
 
-- Threshold details and data files: [Thresholds and Data Files](../configuration/thresholds-and-files.md)
-- CLI transport options: [CLI Options and Environment](../cli-and-scripts/cli-options.md)
+- Threshold details and data files:
+  [Thresholds and Data Files](../configuration/thresholds-and-files.md)
+- CLI transport options:
+  [CLI Options and Environment](../cli-and-scripts/cli-options.md)

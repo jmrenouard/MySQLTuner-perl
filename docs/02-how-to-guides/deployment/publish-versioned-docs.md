@@ -1,22 +1,26 @@
 # Publish Versioned Documentation
 
-Refer to [Release Notes Archive](../../03-reference/releases/index.md) for current release versions before you
-start this procedure.
+Refer to [Release Notes Archive](../../03-reference/releases/index.md) for
+current release versions before you start this procedure.
 
 ## Preconditions
 
 Before you start this procedure, make sure that these conditions apply:
 
 1. Python 3.8 or a newer version and Git exist on your workstation.
-2. You have `markdownlint-cli2` on your workstation if you execute local lint checks.
-3. For manual GitHub Actions deployment, you have repository write access and IONOS SFTP secrets.
+2. You have `markdownlint-cli2` on your workstation if you execute local lint
+   checks.
+3. For manual GitHub Actions deployment, you have repository write access and
+   IONOS SFTP secrets.
 
 ## Safety Precautions
 
-**CAUTION:** Run `make docs-check` and `mkdocs build --strict` before you publish a version. Broken relative links
-or incorrect `mike` aliases break documentation navigation.
+**CAUTION:** Run `make docs-check` and `mkdocs build --strict` before you
+publish a version. Broken relative links or incorrect `mike` aliases break
+documentation navigation.
 
-**NOTE:** The `mkdocs.yml` file sets `mike` to `alias_type: redirect` for a static Apache web server.
+**NOTE:** The `mkdocs.yml` file sets `mike` to `alias_type: redirect` for a
+static Apache web server.
 
 ## Procedure
 
@@ -28,9 +32,9 @@ or incorrect `mike` aliases break documentation navigation.
    make docs-install
    ```
 
-### Step 2: Validate Structure, STE Compliance, and Strict Build
+### Step 2: Validate Structure, Style, and Strict Build
 
-1. Run the Diataxis structure and link check in strict mode:
+1. Run the documentation structure and link check in strict mode:
 
    ```bash
    make docs-check
@@ -42,7 +46,8 @@ or incorrect `mike` aliases break documentation navigation.
    npx markdownlint-cli2 "docs/**/*.md"
    ```
 
-3. Run the strict MkDocs build to validate hooks, release injection, and navigation:
+3. Run the strict MkDocs build to validate hooks, release injection, and
+   navigation:
 
    ```bash
    make docs-build
@@ -64,13 +69,16 @@ or incorrect `mike` aliases break documentation navigation.
 
 1. Open the GitHub Actions tab and select `.github/workflows/docs-deploy.yml`.
 
-2. Start `workflow_dispatch` with target `version` (for example `2.9.4`), `alias` (`latest`), and `set_default`.
+2. Start `workflow_dispatch` with target `version` (for example `2.9.4`),
+   `alias` (`latest`), and `set_default`.
 
-3. Set `dry_run` to `true` for a rehearsal, or set `false` to push `docs-site` and upload to IONOS.
+3. Set `dry_run` to `true` for a rehearsal, or set `false` to push `docs-site`
+   and upload to IONOS.
 
 #### Option B: Deploy Manually with `mike`
 
-1. Fetch the `docs-site` branch from `origin` and build the new versioned directory:
+1. Fetch the `docs-site` branch from `origin` and build the new versioned
+   directory:
 
    ```bash
    git fetch origin docs-site:docs-site || true
@@ -94,17 +102,20 @@ or incorrect `mike` aliases break documentation navigation.
 
 1. Make sure that `make docs-check` and `make docs-build` exit with code `0`.
 
-2. Examine `versions.json` on `docs-site` and make sure that the new version and `latest` alias exist:
+2. Examine `versions.json` on `docs-site` and make sure that the new version and
+   `latest` alias exist:
 
    ```bash
    git show docs-site:versions.json
    ```
 
-3. Open the site URL and make sure that the version selector switches between versions cleanly.
+3. Open the site URL and make sure that the version selector switches between
+   versions cleanly.
 
 ## Rollback
 
-If an active documentation version contains errors, restore the previous version alias immediately:
+If an active documentation version contains errors, restore the previous version
+alias immediately:
 
 1. Delete the broken version directory from the `docs-site` branch:
 
@@ -112,7 +123,8 @@ If an active documentation version contains errors, restore the previous version
    mike delete --branch docs-site 2.9.4
    ```
 
-2. Point the `latest` alias back to the previous healthy version (for example `2.9.3`):
+2. Point the `latest` alias back to the previous healthy version (for example
+   `2.9.3`):
 
    ```bash
    mike deploy --branch docs-site --update-aliases 2.9.3 latest
@@ -120,10 +132,11 @@ If an active documentation version contains errors, restore the previous version
    git push origin docs-site
    ```
 
-3. Run `.github/workflows/docs-deploy.yml` again with `workflow_dispatch` to synchronize the static IONOS host.
+3. Run `.github/workflows/docs-deploy.yml` again with `workflow_dispatch` to
+   synchronize the static IONOS host.
 
 ## Related Topics
 
 - Reference: [Release Notes Archive](../../03-reference/releases/index.md)
 - Explanation:
-  [ADR-002 Versioned Diataxis Docs](../../04-explanation/design-decisions/adr-002-versioned-diataxis-docs.md)
+  [ADR-002: Versioned Docs](../../04-explanation/design-decisions/adr-002-versioned-documentation-architecture.md)

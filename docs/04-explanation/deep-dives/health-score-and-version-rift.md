@@ -1,13 +1,17 @@
 # Weighted Health Score Model and Engine Version Rift
 
-Analytical deep dive into MySQLTuner's `40 / 30 / 30` composite health scoring model and its version-disambiguation
-architecture across MySQL (`5.7`–`9.x` / `26.10`) and MariaDB (`10.x`–`13.0`).
+Analytical deep dive into MySQLTuner's `40 / 30 / 30` composite health scoring
+model and its version-disambiguation architecture across MySQL
+(`5.7` to `9.x` / `26.10`) and MariaDB (`10.x` to `13.0`).
 
 ## Weighted Health Score (`40 / 30 / 30`) Analytical Model
 
-Single-metric alerts fail to convey overall server posture when a database has healthy memory ratios alongside exposed
-authentication risks or broken replication threads. `calculate_health_score()` aggregates operational telemetry into a
-bounded `0`–`100` index across three weighted pillars:
+Single-metric alerts fail to convey overall server posture when a database has
+healthy memory ratios alongside exposed authentication risks or broken
+replication threads.
+
+`calculate_health_score()` aggregates operational telemetry into a bounded
+`0` to `100` index across three weighted pillars:
 
 ```mermaid
 flowchart LR
@@ -26,44 +30,53 @@ flowchart LR
 
 ### Design Mechanics and Neutral Fallbacks
 
-- **Performance (`40` points)**: Four orthogonal indicators (`perf_bp`, `perf_temp`, `perf_thread`, `perf_conn`) each
-  contribute `0`, `5`, or `10` points (`perf_conn` is binary `10` below `80%` and `0` at or above `80%`). When a metric
-  is undefined (for instance, an unexercised cache), `calculate_health_score()` assigns a neutral `5` points rather than
-  penalizing an inactive feature with `0`.
-- **Security (`30` points)**: Starts at `30` and subtracts `5` points per entry pushed onto `@secrec` (covering
-  unencrypted sessions, disabled TLS, insecure `TLSv1.0`/`TLSv1.1` or weak ciphers, anonymous users, empty passwords,
-  and deprecated authentication plugins), floored at `0`.
-- **Resilience (`30` points)**: Combines replication health (`res_lag`: `10` pts standalone or `< 1s` lag, `5` pts for
-  `1..59s`, `0` pts for stopped threads or `>= 60s`), redo/binlog sizing stability (`res_logs`: `-5` pts if
-  `innodb_log_file_size` or `innodb_redo_log_capacity` needs tuning), and schema modeling health (`res_meta`: `-5` pts
-  when `scalar(@modeling) > 5`).
-- **Complementary KPIs**: Alongside the composite `WeightedHealthScore`, `calculate_sectional_health_scores()` emits
-  five independent `0`–`100` domain scores (`General`, `Storage`, `Security`, `Replication`, `Modeling`) and a
-  `ResourceSaturation` vector (`CPU`, `Memory`, `Connections`, `IO`) so high performance scores cannot mask localized
-  saturation.
+- **Performance (`40` points)**: Four orthogonal indicators (`perf_bp`,
+  `perf_temp`, `perf_thread`, `perf_conn`) each contribute `0`, `5`, or `10`
+  points (`perf_conn` is binary `10` below `80%` and `0` at or above `80%`).
+- **Neutral Fallbacks**: When a metric is undefined (for example, an unexercised
+  cache), `calculate_health_score()` assigns `5` points rather than penalizing
+  an inactive feature with `0`.
+- **Security (`30` points)**: Starts at `30` and subtracts `5` points per
+  `@secrec` entry (covering unencrypted sessions, weak TLS/ciphers, anonymous
+  users, empty passwords, and deprecated auth plugins), floored at `0`.
+- **Resilience (`30` points)**: Combines replication lag (`res_lag`: `10` pts
+  standalone or `< 1s`, `5` pts `1..59s`, `0` pts stopped or `>= 60s`), redo log
+  sizing (`res_logs`: `-5` pts), and modeling health (`res_meta`: `-5` if
+  `> 5`).
+- **Complementary KPIs**: `calculate_sectional_health_scores()` emits five
+  `0` to `100` domain scores (`General`, `Storage`, `Security`, `Replication`,
+  `Modeling`) and a `ResourceSaturation` vector (`CPU`, `Memory`, `Connections`,
+  `IO`).
 
 ## MySQL vs MariaDB Version Rift Analysis
 
-MySQL and MariaDB diverged substantially after MySQL 5.7 and MariaDB 10.0, making naive `major.minor` version checks
-unsafe when a single script targets both ecosystems.
+MySQL and MariaDB diverged substantially after MySQL 5.7 and MariaDB 10.0,
+making naive `major.minor` version checks unsafe when a single script targets
+both ecosystems.
 
 ### Authoritative Engine Disambiguation (`is_mariadb()`)
 
-Historically, `calculations()` stripped vendor suffixes from `$myvar{'version'}` (`s/(.+)-.*?$/$1/`) after storing the
-original string in `$real_vars{'version'}`. Once MySQL introduced calendar-style releases (`26.7`, `26.10`) alongside
-MariaDB `10.x`–`13.0`, checking `major >= 10` alone misclassified MySQL `26.x` as MariaDB.
+Historically, `calculations()` stripped vendor suffixes from `$myvar{'version'}`
+(`s/(.+)-.*?$/$1/`) after storing the original string in
+`$real_vars{'version'}`.
+
+Once MySQL introduced calendar-style releases (`26.7`, `26.10`) alongside
+MariaDB `10.x` to `13.0`, checking `major >= 10` alone misclassified MySQL
+`26.x`.
 
 `is_mariadb()` resolves this ambiguity in three deterministic stages:
 
-1. Match `mariadb` case-insensitively in `$myvar{'version'}` or `$myvar{'version_comment'}` (returning `1`), or match
+1. Match `mariadb` case-insensitively in `$myvar{'version'}` or
+   `$myvar{'version_comment'}` (returning `1`), or match
    `mysql|percona|oracle|aurora` (returning `0`).
-2. Compare the unstripped `$real_vars{'version'}` base prefix when `-MariaDB` was stripped during `calculations()`.
-3. Fall back to numeric major bounds `( $maj >= 10 && $maj < 26 )`, which isolates MariaDB `10.x`–`13.x` from MySQL
-   `5.5`–`9.x` and `26.x`.
+2. Compare the unstripped `$real_vars{'version'}` base prefix when `-MariaDB`
+   was stripped during `calculations()`.
+3. Fall back to numeric major bounds `( $maj >= 10 && $maj < 26 )`, which
+   isolates MariaDB `10.x` to `13.x` from MySQL `5.5` to `9.x` and `26.x`.
 
 ### Cross-Engine Divergence Points in `mysqltuner.pl`
 
-| Subsystem | MySQL (`5.7`–`9.x` / `26.10`) | MariaDB (`10.x`–`13.0`) | Diagnostic Adaptation |
+| Subsystem | MySQL (`5.7` to `9.x` / `26.10`) | MariaDB (`10.x` to `13.0`) | Diagnostic Adaptation |
 | :--- | :--- | :--- | :--- |
 | Replication Commands | `SHOW REPLICA STATUS` (>= `8.0.22`); `SHOW SLAVE STATUS` (< `8.0.22`) | `SHOW REPLICA STATUS` (>= `10.5`); `SHOW SLAVE STATUS` (< `10.5`) | Probes `REPLICA` variables and falls back to `SLAVE` equivalents |
 | User Auth Store | `mysql.user` (`authentication_string`), `PASSWORD()` removed in `8.0+` | `mysql.global_priv` JSON (`Priv` column) in `10.4+` | Queries `JSON_VALUE(Priv, '$.plugin')` on MariaDB `10.4+`; uses Perl `Digest::SHA` offline |

@@ -1,17 +1,20 @@
 # Tutorial: AI Agent & MCP Sandbox Lab
 
-> **Learning Goal:** Produce machine-readable `--agent-json` remediation plans, export the offline indicator catalog,
-> and interact with the MySQLTuner Model Context Protocol (MCP) server in an isolated local Docker sandbox.
+> **Learning Goal:** Produce machine-readable `--agent-json` remediation plans,
+> export the offline indicator catalog, and interact with the MySQLTuner Model
+> Context Protocol (MCP) server in an isolated local Docker sandbox.
 >
-> **Environment Warning:** Keep `READ_ONLY=true` during learning sessions and run all commands only against a
-> disposable local Docker container. Never connect AI write tools to production servers during a tutorial.
+> **Environment Warning:** Keep `READ_ONLY=true` during learning sessions and
+> run all commands only against a disposable local Docker container. Never
+> connect AI write tools to production servers during a tutorial.
 
 ## Prerequisites
 
 Ensure your local environment includes:
 
 - Docker Engine 24+
-- Python 3.8+ (standard library only; zero external pip packages required for `build/mcp_server.py`)
+- Python 3.8+ (standard library only; zero external pip packages required for
+  `build/mcp_server.py`)
 - Perl 5.6+ with `JSON::PP` (included in Perl core since 5.14)
 - Local repository checkout of `MySQLTuner-perl`
 - Local TCP port `13306` available
@@ -21,9 +24,11 @@ Ensure your local environment includes:
 By the end of this lab, you will have:
 
 1. Inspected MySQLTuner's offline indicator catalog with `--list-indicators`.
-2. Launched a temporary MariaDB 11.4 container and extracted actionable fixes via `--agent-json`.
+2. Launched a temporary MariaDB 11.4 container and extracted actionable fixes
+   via `--agent-json`.
 3. Built the containerized MCP server image from `Dockerfile.mcp`.
-4. Sent JSON-RPC 2.0 `initialize`, `tools/list`, and `tools/call` requests to `build/mcp_server.py` over stdio.
+4. Sent JSON-RPC 2.0 `initialize`, `tools/list`, and `tools/call` requests to
+   `build/mcp_server.py` over stdio.
 
 ## Lab Execution Flow
 
@@ -38,7 +43,8 @@ flowchart LR
 
 ## Step 1: Export the Offline Indicator Catalog
 
-Before starting a database, test offline indicator discovery. This flag needs no database connection:
+Before starting a database, test offline indicator discovery. This flag needs
+no database connection:
 
 ```bash
 perl mysqltuner.pl --list-indicators | head -n 25
@@ -70,7 +76,8 @@ docker run -d \
   mariadb:11.4
 ```
 
-Wait until the server accepts queries, then run `mysqltuner.pl` with `--agent-json`:
+Wait until the server accepts queries, then run `mysqltuner.pl` with
+`--agent-json`:
 
 ```bash
 perl mysqltuner.pl \
@@ -104,12 +111,14 @@ Expected output (abbreviated JSON structure):
 }
 ```
 
-Every finding includes `impact_score`, `risk_level`, `requires_restart`, and a matching `rollback_statement` so AI
-agents can evaluate safety before proposing any change.
+Every finding includes `impact_score`, `risk_level`, `requires_restart`, and a
+matching `rollback_statement` so AI agents can evaluate safety before proposing
+any change.
 
 ## Step 3: Build the `Dockerfile.mcp` Microservice Image
 
-Inspect `Dockerfile.mcp` and build a local `mysqltuner-mcp` image from the repository root:
+Inspect `Dockerfile.mcp` and build a local `mysqltuner-mcp` image from the
+repository root:
 
 ```bash
 docker build -f Dockerfile.mcp -t mysqltuner-mcp .
@@ -124,8 +133,8 @@ Expected output (final lines):
 
 ## Step 4: Query `build/mcp_server.py` Over JSON-RPC Stdio
 
-Run `build/mcp_server.py` locally in safe `READ_ONLY=true` mode against your sandbox database and send three JSON-RPC
-requests over standard input:
+Run `build/mcp_server.py` locally in safe `READ_ONLY=true` mode against your
+sandbox database and send three JSON-RPC requests over standard input:
 
 ```bash
 mkdir -p /tmp/mt-mcp-cache
@@ -146,9 +155,10 @@ Expected output (three JSON-RPC response lines):
 {"jsonrpc": "2.0", "result": {"content": [{"type": "text", "text": "{\n  \"status\": \"OPTIMAL\",\n  \"metrics\": {\n    \"hit_ratio_pct\": 100.0,\n..."}]}]}, "id": 3}
 ```
 
-With `READ_ONLY=true`, diagnostic tools (`run_audit`, `get_latest_audit`, `analyze_buffer_pool`,
-`diagnose_replication_lag`, `detect_fragmented_tables`) succeed while write tools (`apply_recommendation`,
-`rollback_recommendation`) safely refuse execution.
+With `READ_ONLY=true`, diagnostic tools (`run_audit`, `get_latest_audit`,
+`analyze_buffer_pool`, `diagnose_replication_lag`, `detect_fragmented_tables`)
+succeed while write tools (`apply_recommendation`, `rollback_recommendation`)
+safely refuse execution.
 
 ## Step 5: Clean Up the Sandbox
 
@@ -161,8 +171,11 @@ rm -rf /tmp/mt-mcp-cache
 
 ## Next Steps
 
-- Apply safe operational procedures in [How-To Guides](../02-how-to-guides/index.md)
-- Review every MCP tool, resource URI, and `--agent-json` field in [Reference](../03-reference/index.md)
-  and [MCP Server & Agent JSON API](../03-reference/cli-and-scripts/mcp-server-api.md)
-- Explore how `.agent/skills/` and `build/mcp_server.py` interact in [Explanation](../04-explanation/index.md)
-  and [AI Agent Architecture](../04-explanation/architecture-overview/ai-agent-architecture.md)
+- Apply safe operational procedures in
+  [How-To Guides](../02-how-to-guides/index.md)
+- Review every MCP tool, resource URI, and `--agent-json` field in
+  [Reference](../03-reference/index.md) and
+  [MCP Server & Agent JSON API](../03-reference/cli-and-scripts/mcp-server-api.md)
+- Explore how `.agent/skills/` and `build/mcp_server.py` interact in
+  [Explanation](../04-explanation/index.md) and
+  [AI Agent Architecture](../04-explanation/architecture-overview/ai-agent-architecture.md)

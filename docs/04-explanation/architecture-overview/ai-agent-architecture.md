@@ -1,7 +1,9 @@
 # AI Agent and MCP Subsystem Architecture
 
-MySQLTuner separates **Domain Intelligence** (`.agent/skills/`) from **Runtime Execution and Telemetry**
-(`build/mcp_server.py` and `mysqltuner.pl --agent-json`) so autonomous agents can audit and tune databases safely.
+MySQLTuner separates **Domain Intelligence** (`.agent/skills/`) from
+**Runtime Execution and Telemetry** (`build/mcp_server.py` and
+`mysqltuner.pl --agent-json`) so autonomous agents can audit and tune databases
+safely.
 
 ## System Topology
 
@@ -54,8 +56,8 @@ graph TD
 
 ## Domain Intelligence Layer (`.agent/skills/`)
 
-Nine specialized skill capsules in `.agent/skills/` provide mathematical formulas, version-divergence guards, and
-operational safety boundaries:
+Nine specialized skill capsules in `.agent/skills/` provide mathematical
+formulas, version-divergence guards, and operational safety boundaries:
 
 | Skill Directory | Operational Scope |
 | :--- | :--- |
@@ -71,35 +73,45 @@ operational safety boundaries:
 
 ## MCP Server Execution Model (`build/mcp_server.py`)
 
-`build/mcp_server.py` implements MCP `2024-11-05` over `JSON-RPC 2.0` using Python 3 standard library modules only:
+`build/mcp_server.py` implements MCP `2024-11-05` over `JSON-RPC 2.0` using
+Python 3 standard library modules only:
 
-- **Dual Transport**: Serves `stdio` by default for desktop IDE clients, or HTTP Server-Sent Events (`--sse`) with
-  `/sse`, `/message`, and `/health` endpoints. When `--sse` starts without `MCP_AUTH_TOKEN`, `READ_ONLY` is forced to
-  `true` so unauthenticated HTTP clients cannot mutate database state.
-- **Atomic Cache and Fail-Closed Queries**: `run_audit` and the periodic daemon thread write `latest.json` and
-  `latest.html` via temporary files and atomic `os.replace()`. Targeted tools (`analyze_buffer_pool`,
-  `diagnose_replication_lag`, `detect_fragmented_tables`) fail closed on SQL errors instead of returning synthetic
-  metrics.
-- **SQL Sanitization and State Ledger**: `apply_recommendation` passes SQL through `sanitize_sql_statement()`, which
-  strips comments, blocks multi-statement payloads and destructive verbs, and restricts execution to an explicit command
-  prefix allowlist. Before executing, it records `@@global.<variable_name>` in `$CACHE_DIR/state.json` so
+- **Dual Transport**: Serves `stdio` by default for desktop IDE clients, or HTTP
+  Server-Sent Events (`--sse`) with `/sse`, `/message`, and `/health` endpoints.
+- **Unauthenticated Guard**: When `--sse` starts without `MCP_AUTH_TOKEN`,
+  `READ_ONLY` is forced to `true` so HTTP clients cannot mutate database state.
+- **Atomic Cache**: `run_audit` and the periodic daemon thread write
+  `latest.json` and `latest.html` via temporary files and atomic `os.replace()`.
+- **Fail-Closed Queries**: Targeted tools (`analyze_buffer_pool`,
+  `diagnose_replication_lag`, `detect_fragmented_tables`) fail closed on SQL
+  errors instead of returning synthetic metrics.
+- **SQL Sanitization**: `apply_recommendation` runs `sanitize_sql_statement()`
+  to strip comments, block multi-statement payloads and destructive verbs, and
+  enforce an explicit command prefix allowlist.
+- **State Ledger**: Before executing SQL, `apply_recommendation` records
+  `@@global.<variable_name>` in `$CACHE_DIR/state.json` so
   `rollback_recommendation` can emit an exact reverse `SET GLOBAL` statement.
 
 ## `--agent-json` Design (`mysqltuner.pl`)
 
-For daemonless pipelines, `perl mysqltuner.pl --agent-json` converts `@adjvars` tuning recommendations into structured
-JSON findings:
+For daemonless pipelines, `perl mysqltuner.pl --agent-json` converts `@adjvars`
+tuning recommendations into structured JSON findings:
 
-- **Static vs Dynamic Classification**: `is_static_config_var()` marks restart-bound parameters (such as
-  `performance_schema`, `innodb_log_file_size`, and `innodb_buffer_pool_instances`) with `requires_restart: true` and
-  `action.type: "Config"`, while runtime-mutable variables emit `action.type: "SQL"` (`SET GLOBAL ...;`).
-- **Sysctl and Dot-Key Filtering**: Keys containing dots (Linux `sysctl` or Galera `gcs.fc_*` options) are excluded
-  from SQL `SET GLOBAL` generation so agents never attempt invalid SQL assignments.
-- **Deterministic Reversibility**: Every finding pairs `action.statement` with `action.rollback_statement`
-  populated from the pre-audit `%myvar` snapshot.
+- **Static vs Dynamic Classification**: `is_static_config_var()` marks
+  restart-bound parameters (`performance_schema`, `innodb_log_file_size`,
+  `innodb_buffer_pool_instances`) with `requires_restart: true` and
+  `action.type: "Config"`.
+- **Runtime SQL Actions**: Runtime-mutable variables emit `action.type: "SQL"`
+  (`SET GLOBAL ...;`) with `requires_restart: false`.
+- **Sysctl and Dot-Key Filtering**: Keys containing dots (Linux `sysctl` or
+  Galera `gcs.fc_*` options) are excluded from SQL `SET GLOBAL` generation so
+  agents never attempt invalid SQL assignments.
+- **Deterministic Reversibility**: Every finding pairs `action.statement` with
+  `action.rollback_statement` populated from the pre-audit `%myvar` snapshot.
 
 ## Related Documentation
 
 - MCP tool schemas and `--agent-json` risk matrix:
   [MCP Server and Agent JSON API](../../03-reference/cli-and-scripts/mcp-server-api.md)
-- Guided local MCP workshop: [AI and MCP Sandbox Lab](../../01-tutorials/02-ai-mcp-sandbox-lab.md)
+- Guided local MCP workshop:
+  [AI and MCP Sandbox Lab](../../01-tutorials/02-ai-mcp-sandbox-lab.md)
